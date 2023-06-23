@@ -1,0 +1,27 @@
+{
+  "name": "condor",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "next dev",
+    "build": "next build",
+    "start": "next start",
+    "lint": "next lint"
+  },
+  "dependencies": {
+    "@reduxjs/toolkit": "^1.9.5",
+    "@tabler/icons-react": "^2.21.0",
+    "baseui": "^13.0.0",
+    "eslint": "8.42.0",
+    "eslint-config-next": "13.4.4",
+    "framer-motion": "^10.12.16",
+    "next": "13.4.4",
+    "react": "18.2.0",
+    "react-dom": "18.2.0",
+    "react-redux": "^8.1.1",
+    "react-responsive": "^9.0.2",
+    "styletron-engine-atomic": "^1.5.0",
+    "styletron-react": "^6.1.0",
+    "uuid": "^9.0.0"
+  }
+}
