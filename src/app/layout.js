@@ -5,14 +5,14 @@ import { Provider as StyletronProvider } from "styletron-react";
 import { BaseProvider } from "baseui";
 import { styled } from "baseui";
 
-import ResponsiveContainer from "./ResponsiveContainer";
-
-// Condor Theme
+// Condor
 import CondorLightTheme from "../theme/CondorLightTheme";
+import { CondorProvider } from "../components/utils/CondorProvider";
 
 // Redux
-import store from "../components/utils/store";
 import { Provider } from "react-redux";
+import { PersistGate } from "redux-persist/integration/react";
+import { store, persistor } from "../components/utils/store";
 
 const engine = new Styletron();
 
@@ -34,13 +34,15 @@ export default function RootLayout({ children }) {
       />
       <body>
         <Provider store={store}>
-          <StyletronProvider value={engine}>
-            <BaseProvider theme={CondorLightTheme}>
+          <PersistGate loading={null} persistor={persistor}>
+            <StyletronProvider value={engine}>
               <SiteBackground>
-                <ResponsiveContainer>{children}</ResponsiveContainer>
+                <BaseProvider theme={CondorLightTheme}>
+                  <CondorProvider>{children}</CondorProvider>
+                </BaseProvider>
               </SiteBackground>
-            </BaseProvider>
-          </StyletronProvider>
+            </StyletronProvider>
+          </PersistGate>
         </Provider>
       </body>
     </html>

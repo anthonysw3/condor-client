@@ -13,18 +13,19 @@ const InputWrapper = styled(Block, {
   paddingTop: "$theme.sizing.scale700",
 });
 
+const FloatingLabel = styled(LabelSmall, ({ $active, $theme }) => ({
+  color: $theme.colors.primary500,
+  marginLeft: $theme.sizing.scale400, // To provide space between the icon and label
+  transition: "0.2s ease all",
+  display: $active ? "inline" : "none",
+}));
+
 const IconLabelWrapper = styled("div", ({ $active, $theme }) => ({
   paddingTop: $theme.sizing.scale500,
   paddingLeft: $theme.sizing.scale600,
   position: "absolute",
   display: "flex",
   alignItems: "center",
-}));
-
-const FloatingLabel = styled(LabelSmall, ({ $active, $theme }) => ({
-  color: $theme.colors.primary500,
-  marginLeft: $theme.sizing.scale400, // To provide space between the icon and label
-  transition: "0.2s ease all",
 }));
 
 export const InputFloating = ({

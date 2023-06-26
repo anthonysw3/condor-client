@@ -8,10 +8,10 @@ const CondorLightTheme = createTheme(
     // Custom Semantic Values (Uncomment and edit as needed)
 
     primaryFontFamily: "Sora, sans-serif",
-    primaryA: "#3D3D3D",
+    // primaryA: "#3D3D3D",
     // primaryB: '...',
-    primary: "#1d206a",
-    primary50: "#ececb5",
+    // primary: "#1d206a",
+    // primary50: "...",
     // primary100: '...',
     // primary200: '...',
     // primary300: '...',
