@@ -55,11 +55,22 @@ const Calendar = () => {
     );
 
     if (isAlreadySelected) {
-      setSelectedDates((prevSelectedDates) =>
-        prevSelectedDates.filter(
+      setSelectedDates((prevSelectedDates) => {
+        const newSelectedDates = prevSelectedDates.filter(
           (selectedDate) => !selectedDate.isSame(date, "day")
-        )
-      );
+        );
+
+        // If only one date is left after filtering, set inbound in redux to empty
+        if (newSelectedDates.length === 1) {
+          dispatch(
+            setDates({
+              outbound: newSelectedDates[0].format("YYYY-MM-DD"),
+              inbound: "",
+            })
+          );
+        }
+        return newSelectedDates;
+      });
     } else {
       setSelectedDates((prevSelectedDates) => {
         let newSelectedDates =

@@ -127,27 +127,12 @@ export default function FlightSearch() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
-    setErrorMessage(null); // Reset error message on new submission
+    setErrorMessage(null);
 
-    const queryParams = {
-      originIata: origin.iata,
-      originName: origin.name,
-      destinationIata: destination.iata,
-      destinationName: destination.name,
-      outboundDate: dates.outbound,
-      inboundDate: dates.inbound,
-      travelClass,
-      adults: passengers.adults,
-      children: passengers.children,
-      infants: passengers.infants,
-    };
-
-    const queryString = new URLSearchParams(queryParams).toString();
-
-    router.push(`/flights/results?${queryString}`);
+    router.push("/flights/results");
   };
 
-  console.log(dates.outbound);
+  console.log(origin.name);
 
   return (
     <section>
@@ -173,10 +158,10 @@ export default function FlightSearch() {
           },
         }}
       >
-        <Button>Business</Button>
-        <Button>First</Button>
-        <Button>Premium</Button>
-        <Button>Economy</Button>
+        <Button key="business">Business</Button>
+        <Button key="first">First</Button>
+        <Button key="premium_economy">Premium</Button>
+        <Button key="economy">Economy</Button>
       </ButtonGroup>
 
       <Grid gridGaps={[12, 6, 12]} gridGutters={[12, 6, 12]} gridMargins={[0]}>
@@ -219,6 +204,7 @@ export default function FlightSearch() {
             label="Return"
             value={dates.inbound}
             placeholder="+ Add date"
+            onClick={handleCalendarDrawer}
           />
         </Cell>
       </Grid>

@@ -327,7 +327,7 @@ export const InputDatePick = ({
         </LabelWrapper>
         <Input
           clearable={clearable}
-          value={value && dayjs(value).format("ddd, DD MMM")}
+          value={value ? dayjs(value).format("ddd, DD MMM") : ""}
           onChange={(event) => setValue(event.target.value)}
           endEnhancer={() => <IconCalendarEvent size={22} />}
           placeholder={placeholder}

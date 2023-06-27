@@ -6,20 +6,28 @@ import { Block } from "baseui/block";
 export default function Steps() {
   return (
     <Block
-      height="75px"
+      height="105px"
       display="flex"
       flexDirection="column"
       justifyContent="space-between"
       overflow="hidden"
       position="relative"
       $style={{ listStyle: "none", margin: 0, padding: 0 }}
+      overrides={{
+        Block: {
+          style: ({ $theme }) => ({
+            marginTop: "17px",
+            marginRight: $theme.sizing.scale500,
+          }),
+        },
+      }}
     >
       <Block
         key="origin"
         overrides={{
           Block: {
             style: ({ $theme }) => ({
-              background: "black",
+              background: $theme.colors.primary300,
               borderRadius: "100px",
               width: "15px",
               height: "15px",
@@ -31,7 +39,7 @@ export default function Steps() {
                 position: "absolute",
                 bottom: 0,
                 left: "5px",
-                background: "black",
+                background: $theme.colors.primary300,
                 width: "5px",
                 height: "100vh",
               },
@@ -44,7 +52,7 @@ export default function Steps() {
         overrides={{
           Block: {
             style: ({ $theme }) => ({
-              background: "black",
+              background: $theme.colors.primary300,
               borderRadius: "100px",
               width: "15px",
               height: "15px",
@@ -56,7 +64,7 @@ export default function Steps() {
                 position: "absolute",
                 bottom: 0,
                 left: "5px",
-                background: "black",
+                background: $theme.colors.primary300,
                 width: "5px",
                 height: "100vh",
               },

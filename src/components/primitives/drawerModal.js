@@ -13,7 +13,7 @@ const ResponsiveDrawerModal = ({
   content,
   callbacks,
 }) => {
-  const isMobile = useMediaQuery({ query: "(max-width: 600px)" });
+  const isMobile = useMediaQuery({ query: "(max-width: 3000px)" });
 
   const handleSomeEvent = () => {
     if (callbacks.someEvent) {

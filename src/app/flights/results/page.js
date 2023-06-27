@@ -3,7 +3,7 @@
 import React, { useEffect, useState } from "react";
 
 // Redux
-import { useSearchParams } from "next/navigation";
+import { useSelector, useDispatch } from "react-redux";
 
 // Day.js
 import dayjs from "dayjs";
@@ -22,66 +22,85 @@ import { Card } from "@/components/primitives/card";
 import { IconArrowRight } from "@tabler/icons-react";
 
 export default function FlightResults() {
-  const [data, setData] = useState(null);
   const [isLoading, setIsLoading] = useState(true);
-  const searchParams = useSearchParams();
+  const dispatch = useDispatch();
 
-  const origin = searchParams.get("originIata");
-  const originDisplay = searchParams.get("originName");
-  const destination = searchParams.get("destinationIata");
-  const destinationDisplay = searchParams.get("destinationName");
-  const date = searchParams.get("outboundDate");
-  const returnDate = searchParams.get("inboundDate");
-  const cabinClass = searchParams.get("travelClass");
+  const {
+    origin,
+    destination,
+    dates: { outbound, inbound },
+    travelClass,
+    passengers: { adults, children, infants },
+  } = useSelector((state) => state.flight);
+
+  const [data, setData] = useState(null);
 
   useEffect(() => {
-    if (searchParams) {
-      const fetchData = async () => {
-        try {
-          setIsLoading(true);
+    const fetchData = async () => {
+      console.log("fetchData called");
+      try {
+        setIsLoading(true);
 
-          const response = await fetch("http://localhost:5000/api/search", {
-            method: "POST",
-            headers: {
-              "Content-Type": "application/json",
+        const response = await fetch("http://192.168.0.227:5000/api/search", {
+          method: "POST",
+          headers: {
+            "Content-Type": "application/json",
+          },
+          body: JSON.stringify({
+            outbound: {
+              origin: origin.iata,
+              destination: destination.iata,
+              date: outbound,
             },
-            body: JSON.stringify({
-              outbound: { origin, destination, date },
-              returnJourney: returnDate
-                ? { origin: destination, destination: origin, date: returnDate }
-                : null,
-              cabin_class: cabinClass,
-              passengers: [{ type: "adult" }, { type: "adult" }],
-            }),
-          });
+            returnJourney: inbound
+              ? {
+                  origin: destination.iata,
+                  destination: origin.iata,
+                  date: inbound,
+                }
+              : null,
+            cabin_class: travelClass,
+            passengers: [{ type: "adult" }, { type: "adult" }],
+          }),
+        });
 
-          const data = await response.json();
-          setData(data);
-        } catch (error) {
-          console.error("Error:", error);
-          // handle error here, for example by setting an error state
-        } finally {
-          setIsLoading(false);
-        }
-      };
+        const responseData = await response.json();
+        console.log(responseData);
+        setData(responseData);
+      } catch (error) {
+        console.error("Error:", error);
+      } finally {
+        setIsLoading(false);
+      }
+    };
+    console.log("Before fetching data");
+    fetchData();
+  }, [
+    origin,
+    destination,
+    outbound,
+    inbound,
+    travelClass,
+    adults,
+    children,
+    infants,
+  ]);
 
-      fetchData();
-    }
-  }, [searchParams]);
-
-  console.log(data);
+  console.log(origin.name);
 
   if (isLoading) {
     return <HeadingXSmall>Loading...</HeadingXSmall>;
   }
 
-  if (data) {
+  if (data && data.offersResponse) {
     return (
       <main>
         <HeadingXSmall
           overrides={{
             Block: {
               style: ({ $theme }) => ({
+                display: "flex",
+                alignItems: "center",
                 marginTop: 0,
                 marginBottom: 0,
                 marginLeft: $theme.sizing.scale200,
@@ -89,7 +108,8 @@ export default function FlightResults() {
             },
           }}
         >
-          {originDisplay} <IconArrowRight size={20} /> {destinationDisplay}
+          {origin.name}
+          <IconArrowRight size={20} /> {destination.name}
         </HeadingXSmall>
         <ParagraphSmall
           overrides={{
@@ -102,30 +122,13 @@ export default function FlightResults() {
             },
           }}
         >
-          {date && dayjs(date).format("DD MMM")}
-          {returnDate && ` - ${dayjs(returnDate).format("DD MMM")}`} &bull; 2
-          passengers
+          {outbound && dayjs(outbound).format("DD MMM")}
+          {inbound && ` - ${dayjs(inbound).format("DD MMM")}`} &bull;{" "}
+          {adults + children + infants} passenger
+          {adults + children + infants > 1 ? "s" : ""}
         </ParagraphSmall>
-        <Notification
-          closeable
-          overrides={{
-            Body: {
-              style: ({ $theme }) => ({
-                width: "auto",
-                ...expandBorderStyles($theme.borders.border600),
-              }),
-            },
-          }}
-        >
-          How are these results ordered?
-        </Notification>
         {data.offersResponse.data.map((offer, index) => (
-          <FlightResult
-            key={index}
-            offer={offer}
-            outboundSegments={offer.slices[0].segments.length}
-            inboundSegments={offer.slices[0].segments.length}
-          />
+          <FlightResult key={index} offer={offer} />
         ))}
       </main>
     );

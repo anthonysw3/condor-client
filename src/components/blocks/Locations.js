@@ -16,57 +16,63 @@ import { List } from "../primitives/list";
 const testLocations = [
   {
     airport: "London Heathrow",
-    city: "London",
+    name: "London",
     country: "United Kingdom",
     iata: "LHR",
   },
   {
     airport: "Guangzhou Baiyun",
-    city: "Guangzhou",
+    name: "Guangzhou",
     country: "China",
     iata: "CAN",
   },
   {
     airport: "New York JFK",
-    city: "New York",
+    name: "New York",
     country: "United States",
     iata: "JFK",
   },
   {
     airport: "Las Vegas McCarran",
-    city: "Las Vegas",
+    name: "Las Vegas",
     country: "United States",
     iata: "LAS",
   },
   {
     airport: "Sydney Kingsford Smith",
-    city: "Sydney",
+    name: "Sydney",
     country: "Australia",
     iata: "SYD",
   },
   {
     airport: "Bangkok Suvarnabhumi",
-    city: "Bangkok",
+    name: "Bangkok",
     country: "Thailand",
     iata: "BKK",
   },
   {
     airport: "Hong Kong International",
-    city: "Hong Kong",
+    name: "Hong Kong",
     country: "Hong Kong SAR",
     iata: "HKG",
   },
   {
     airport: "Manchester Airport",
-    city: "Manchester",
+    name: "Manchester",
     country: "United Kingdom",
     iata: "MAN",
   },
   {
     airport: "Larnaca International",
-    city: "Larnaca",
+    name: "Larnaca",
     country: "Cyprus",
     iata: "LCA",
+  },
+  {
+    airport: "Haikou Meilan",
+    name: "Haikou",
+    country: "China",
+    iata: "HAK",
   },
 ];
 
@@ -88,7 +94,7 @@ export default function Locations({ onChange }) {
       <InputText
         label="Depart from"
         onChange={handleLocationChange}
-        placeholder="Airport, city, or place"
+        placeholder="Airport, name, or place"
       />
       <Block
         overrides={{
@@ -116,7 +122,7 @@ export default function Locations({ onChange }) {
             <List
               key={location.iata}
               label={location.airport}
-              description={`${location.city}, ${location.country}`}
+              description={`${location.name}, ${location.country}`}
               listEnd={
                 <>
                   <Badge
