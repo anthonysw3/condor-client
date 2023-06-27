@@ -25,6 +25,8 @@ export default function FlightResults() {
   const [isLoading, setIsLoading] = useState(true);
   const dispatch = useDispatch();
 
+  const [after, setAfter] = useState(null); // new state variable
+
   const {
     origin,
     destination,
@@ -33,47 +35,55 @@ export default function FlightResults() {
     passengers: { adults, children, infants },
   } = useSelector((state) => state.flight);
 
-  const [data, setData] = useState(null);
+  const [data, setData] = useState([]);
+
+  const fetchData = async (after = null) => {
+    setIsLoading(true);
+    try {
+      const response = await fetch("http://192.168.0.227:5000/api/search", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({
+          outbound: {
+            origin: origin.iata,
+            destination: destination.iata,
+            date: outbound,
+          },
+          returnJourney: inbound
+            ? {
+                origin: destination.iata,
+                destination: origin.iata,
+                date: inbound,
+              }
+            : null,
+          cabin_class: travelClass,
+          passengers: [{ type: "adult" }, { type: "adult" }],
+          after: after,
+        }),
+      });
+
+      const responseData = await response.json();
+      setData((prevData) => [
+        ...prevData,
+        ...(responseData.offersResponse.data || []),
+      ]);
+
+      if (responseData.offersResponse.meta.after) {
+        setAfter(responseData.offersResponse.meta.after);
+      } else {
+        // If there's no 'after' in the response, stop fetching
+        setAfter(null);
+      }
+    } catch (error) {
+      console.error("Error:", error);
+    } finally {
+      setIsLoading(false);
+    }
+  };
 
   useEffect(() => {
-    const fetchData = async () => {
-      console.log("fetchData called");
-      try {
-        setIsLoading(true);
-
-        const response = await fetch("http://192.168.0.227:5000/api/search", {
-          method: "POST",
-          headers: {
-            "Content-Type": "application/json",
-          },
-          body: JSON.stringify({
-            outbound: {
-              origin: origin.iata,
-              destination: destination.iata,
-              date: outbound,
-            },
-            returnJourney: inbound
-              ? {
-                  origin: destination.iata,
-                  destination: origin.iata,
-                  date: inbound,
-                }
-              : null,
-            cabin_class: travelClass,
-            passengers: [{ type: "adult" }, { type: "adult" }],
-          }),
-        });
-
-        const responseData = await response.json();
-        console.log(responseData);
-        setData(responseData);
-      } catch (error) {
-        console.error("Error:", error);
-      } finally {
-        setIsLoading(false);
-      }
-    };
-    console.log("Before fetching data");
     fetchData();
   }, [
     origin,
@@ -92,7 +102,7 @@ export default function FlightResults() {
     return <HeadingXSmall>Loading...</HeadingXSmall>;
   }
 
-  if (data && data.offersResponse) {
+  if (data.length > 0) {
     return (
       <main>
         <HeadingXSmall
@@ -127,7 +137,7 @@ export default function FlightResults() {
           {adults + children + infants} passenger
           {adults + children + infants > 1 ? "s" : ""}
         </ParagraphSmall>
-        {data.offersResponse.data.map((offer, index) => (
+        {data.map((offer, index) => (
           <FlightResult key={index} offer={offer} />
         ))}
       </main>
