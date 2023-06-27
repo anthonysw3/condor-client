@@ -2,7 +2,7 @@ import React, { useState } from "react";
 import { Block } from "baseui/block";
 import { Notification } from "baseui/notification";
 import { Badge, HIERARCHY, COLOR } from "baseui/badge";
-import { Button, KIND, SIZE } from "baseui/button";
+import { Button, KIND, SIZE, SHAPE } from "baseui/button";
 import {
   MonoLabelSmall,
   ParagraphMedium,
@@ -103,7 +103,16 @@ function ExpandableBlock({ slice }) {
             {slice.segments.reduce((segmentBlocks, currSegment, index) => {
               // push the current segment details into segmentBlocks
               segmentBlocks.push(
-                <Block key={`segment-${index}`}>
+                <Block
+                  key={`segment-${index}`}
+                  overrides={{
+                    Block: {
+                      style: ({ $theme }) => ({
+                        marginTop: $theme.sizing.scale800,
+                      }),
+                    },
+                  }}
+                >
                   <Block>
                     <Block display="flex">
                       <Steps />
@@ -264,7 +273,10 @@ function ExpandableBlock({ slice }) {
                         Body: { style: { width: "auto" } },
                       }}
                     >
-                      {formattedLayoverTime}
+                      {formattedLayoverTime > 4
+                        ? `<stong>${formattedLayoverTime}</strong>`
+                        : formattedLayoverTime}{" "}
+                      transfer in {currSegment.destination.iata_code}
                     </Notification>
                   </Block>
                 );
@@ -288,7 +300,17 @@ function ExpandableBlock({ slice }) {
             },
           }}
         >
-          {isOpen ? <IconChevronUp size={24} /> : <IconChevronDown size={24} />}
+          <Button
+            kind={KIND.secondary}
+            size={SIZE.compact}
+            shape={SHAPE.circle}
+          >
+            {isOpen ? (
+              <IconChevronUp size={24} />
+            ) : (
+              <IconChevronDown size={24} />
+            )}
+          </Button>
         </Block>
       </Block>
     </Block>

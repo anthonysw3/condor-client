@@ -14,6 +14,7 @@ import {
 import { FlexGrid, FlexGridItem } from "baseui/flex-grid";
 import { Badge, HIERARCHY, COLOR } from "baseui/badge";
 import { Button, SIZE, SHAPE } from "baseui/button";
+import { Skeleton } from "baseui/skeleton";
 import { useStyletron } from "baseui";
 
 // Icons
@@ -334,6 +335,92 @@ export default function FlightResult({ offer }) {
         >
           Select
         </Button>
+      </Block>
+    </Card>
+  );
+}
+
+export function FlightResultSkeleton() {
+  return (
+    <Card>
+      <Block
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        overrides={{
+          Block: {
+            style: ({ $theme }) => ({
+              marginBottom: $theme.sizing.scale800,
+            }),
+          },
+        }}
+      >
+        <Skeleton
+          rows={2}
+          width="200px"
+          overrides={{
+            Row: {
+              style: {
+                height: "10px",
+                marginBottom: "5px",
+              },
+            },
+          }}
+          animation
+        />
+      </Block>
+      <Skeleton
+        rows={2}
+        width="100%"
+        overrides={{
+          Row: {
+            style: {
+              height: "20px",
+              marginBottom: "5px",
+            },
+          },
+        }}
+        animation
+      />
+      <Block
+        display="flex"
+        justifyContent="space-between"
+        alignItems="center"
+        overrides={{
+          Block: {
+            style: ({ $theme }) => ({
+              marginTop: $theme.sizing.scale700,
+            }),
+          },
+        }}
+      >
+        <Skeleton
+          height="40px"
+          width="70px"
+          overrides={{
+            Root: {
+              style: ({ $theme }) => ({
+                marginTop: $theme.sizing.scale500,
+                marginBottom: 0,
+              }),
+            },
+          }}
+          animation
+        />
+        <Skeleton
+          height="40px"
+          width="90px"
+          animation
+          overrides={{
+            Root: {
+              style: ({ $theme }) => ({
+                marginTop: $theme.sizing.scale500,
+                marginBottom: 0,
+                borderRadius: $theme.borders.radius200,
+              }),
+            },
+          }}
+        />
       </Block>
     </Card>
   );

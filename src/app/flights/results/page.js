@@ -16,6 +16,7 @@ import { expandBorderStyles } from "baseui/styles";
 
 // Condor Components
 import FlightResult from "@/components/blocks/FlightResult";
+import { FlightResultSkeleton } from "@/components/blocks/FlightResult";
 import { Card } from "@/components/primitives/card";
 
 // Icons
@@ -37,8 +38,7 @@ export default function FlightResults() {
 
   const [data, setData] = useState([]);
 
-  const fetchData = async (after = null) => {
-    setIsLoading(true);
+  const fetchData = async () => {
     try {
       const response = await fetch("http://192.168.0.227:5000/api/search", {
         method: "POST",
@@ -65,21 +65,17 @@ export default function FlightResults() {
       });
 
       const responseData = await response.json();
-      setData((prevData) => [
-        ...prevData,
-        ...(responseData.offersResponse.data || []),
-      ]);
+      const offers = responseData.offersResponse?.data || [];
+      const newAfter = responseData.offersResponse?.meta?.after || null;
 
-      if (responseData.offersResponse.meta.after) {
-        setAfter(responseData.offersResponse.meta.after);
-      } else {
-        // If there's no 'after' in the response, stop fetching
-        setAfter(null);
+      setData((prevData) => [...prevData, ...offers]);
+      setAfter(newAfter);
+
+      if (!newAfter) {
+        setIsLoading(false);
       }
     } catch (error) {
       console.error("Error:", error);
-    } finally {
-      setIsLoading(false);
     }
   };
 
@@ -96,53 +92,62 @@ export default function FlightResults() {
     infants,
   ]);
 
+  useEffect(() => {
+    if (after) {
+      fetchData();
+    }
+  }, [after]);
+
   console.log(origin.name);
 
-  if (isLoading) {
-    return <HeadingXSmall>Loading...</HeadingXSmall>;
-  }
+  // ...
 
-  if (data.length > 0) {
-    return (
-      <main>
-        <HeadingXSmall
-          overrides={{
-            Block: {
-              style: ({ $theme }) => ({
-                display: "flex",
-                alignItems: "center",
-                marginTop: 0,
-                marginBottom: 0,
-                marginLeft: $theme.sizing.scale200,
-              }),
-            },
-          }}
-        >
-          {origin.name}
-          <IconArrowRight size={20} /> {destination.name}
-        </HeadingXSmall>
-        <ParagraphSmall
-          overrides={{
-            Block: {
-              style: ({ $theme }) => ({
-                marginTop: $theme.sizing.scale100,
-                marginBottom: 0,
-                marginLeft: $theme.sizing.scale200,
-              }),
-            },
-          }}
-        >
-          {outbound && dayjs(outbound).format("DD MMM")}
-          {inbound && ` - ${dayjs(inbound).format("DD MMM")}`} &bull;{" "}
-          {adults + children + infants} passenger
-          {adults + children + infants > 1 ? "s" : ""}
-        </ParagraphSmall>
-        {data.map((offer, index) => (
-          <FlightResult key={index} offer={offer} />
-        ))}
-      </main>
-    );
-  }
+  console.log(origin.name);
 
-  return <HeadingXSmall>No results... yet</HeadingXSmall>;
+  return (
+    <main>
+      <HeadingXSmall
+        overrides={{
+          Block: {
+            style: ({ $theme }) => ({
+              display: "flex",
+              alignItems: "center",
+              marginTop: 0,
+              marginBottom: 0,
+              marginLeft: $theme.sizing.scale200,
+            }),
+          },
+        }}
+      >
+        {origin.name}
+        <IconArrowRight size={20} /> {destination.name}
+      </HeadingXSmall>
+      <ParagraphSmall
+        overrides={{
+          Block: {
+            style: ({ $theme }) => ({
+              marginTop: $theme.sizing.scale100,
+              marginBottom: 0,
+              marginLeft: $theme.sizing.scale200,
+            }),
+          },
+        }}
+      >
+        {outbound && dayjs(outbound).format("DD MMM")}
+        {inbound && ` - ${dayjs(inbound).format("DD MMM")}`} &bull;{" "}
+        {adults + children + infants} passenger
+        {adults + children + infants > 1 ? "s" : ""}
+      </ParagraphSmall>
+
+      {isLoading && (
+        <Block>
+          <FlightResultSkeleton />
+          <FlightResultSkeleton />
+        </Block>
+      )}
+
+      {data.length > 0 &&
+        data.map((offer, index) => <FlightResult key={index} offer={offer} />)}
+    </main>
+  );
 }
