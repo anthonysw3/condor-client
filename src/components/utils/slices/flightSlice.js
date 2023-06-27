@@ -3,17 +3,19 @@ import { createSlice } from "@reduxjs/toolkit";
 const flight = () => {
   return {
     origin: {
-      airport: "London",
-      name: "London, United Kingdom",
-      iata: "LON",
+      airport: "London Heathrow",
+      name: "London",
+      country: "United Kingdom",
+      iata: "LHR",
     },
     destination: {
       airport: "",
       name: "",
+      country: "",
       iata: "",
     },
     dates: {
-      outbound: new Date(),
+      outbound: "2023-06-30",
       inbound: null,
     },
     travelClass: "",
@@ -32,29 +34,14 @@ const flightSlice = createSlice({
     setFlightState: (state, action) => {
       return action.payload;
     },
-    setOriginAirport: (state, action) => {
-      state.origin.airport = action.payload;
+    setOrigin: (state, action) => {
+      state.origin = action.payload;
     },
-    setOriginName: (state, action) => {
-      state.origin.name = action.payload;
+    setDestination: (state, action) => {
+      state.destination = action.payload;
     },
-    setOriginIata: (state, action) => {
-      state.origin.iata = action.payload;
-    },
-    setDestinationAirport: (state, action) => {
-      state.destination.airport = action.payload;
-    },
-    setDestinationName: (state, action) => {
-      state.destination.name = action.payload;
-    },
-    setDestinationIata: (state, action) => {
-      state.destination.iata = action.payload;
-    },
-    setOutboundDate: (state, action) => {
-      state.dates.outbound = action.payload;
-    },
-    setInboundDate: (state, action) => {
-      state.dates.inbound = action.payload;
+    setDates: (state, action) => {
+      state.dates = action.payload;
     },
     setTravelClass: (state, action) => {
       state.travelClass = action.payload;
@@ -68,16 +55,10 @@ const flightSlice = createSlice({
 export { flight };
 export const {
   setFlightState,
-  setOriginAirport,
-  setOriginName,
-  setOriginIata,
-  setDestinationAirport,
-  setDestinationName,
-  setDestinationIata,
-  setOutboundDate,
-  setInboundDate,
+  setOrigin,
+  setDestination,
+  setDates,
   setTravelClass,
   setPassengers,
-  // Add other action creators here...
 } = flightSlice.actions;
 export default flightSlice.reducer;

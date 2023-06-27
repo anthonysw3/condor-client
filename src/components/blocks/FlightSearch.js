@@ -4,9 +4,9 @@ import { useRouter } from "next/navigation";
 // Redux
 import { useDispatch, useSelector } from "react-redux";
 import {
-  setOriginAirport,
-  setOriginName,
-  setOriginIata,
+  setOrigin,
+  setDestination,
+  setDates,
   setTravelClass,
 } from "../utils/slices/flightSlice";
 
@@ -27,7 +27,7 @@ import {
 } from "../primitives/input";
 
 // Icons
-import { IconSearch, IconPlus } from "@tabler/icons-react";
+import { IconSearch } from "@tabler/icons-react";
 
 // Components
 import Locations from "./Locations";
@@ -43,38 +43,34 @@ const selectTotalPassengers = (state) =>
 export default function FlightSearch() {
   // State
   const buttonValues = ["Business", "First", "Premium", "Economy"];
-  const travelClass = useSelector((state) => state.flight.travelClass);
-  const [selected, setSelected] = useState(buttonValues.indexOf(travelClass));
+
   const [status, setStatus] = useState([]);
   const [errorMessage, setErrorMessage] = useState(null);
 
+  // Redux
+  const dispatch = useDispatch();
+  const origin = useSelector((state) => state.flight.origin);
+  const destination = useSelector((state) => state.flight.destination);
+  const dates = useSelector((state) => state.flight.dates);
+  const travelClass = useSelector((state) => state.flight.travelClass);
+  const totalPassengers = useSelector(selectTotalPassengers);
+
+  const [selected, setSelected] = useState(buttonValues.indexOf(travelClass));
   useEffect(() => {
     setSelected(buttonValues.indexOf(travelClass));
   }, [travelClass]);
 
-  const dispatch = useDispatch();
-  const originAirport = useSelector((state) => state.flight.origin_airport);
-  const originName = useSelector((state) => state.flight.origin_name);
-  const originIata = useSelector((state) => state.flight.origin_iata);
-  const destinationAirport = useSelector(
-    (state) => state.flight.destination_airport
-  );
-  const destinationName = useSelector((state) => state.flight.destination_name);
-  const destinationIata = useSelector((state) => state.flight.destination_iata);
-
-  const outboundDate = useSelector((state) => state.flight.dates.outbound);
-
-  const totalPassengers = useSelector(selectTotalPassengers);
-
-  const { openModal } = useCondor();
+  const { openModal, closeModal } = useCondor();
 
   const handleOriginDrawer = () => {
     const title = "Where from?";
     const callbacks = {
-      onChange: (event) =>
-        dispatch(setOriginAirport(event.target.origin_airport.value)),
+      onChange: (selectedLocation) => {
+        dispatch(setOrigin(selectedLocation));
+        closeModal();
+      },
     };
-    const content = <Locations onChange={callbacks.onChange} flights origin />;
+    const content = <Locations onChange={callbacks.onChange} />;
 
     openModal(title, content, callbacks);
   };
@@ -82,17 +78,24 @@ export default function FlightSearch() {
   const handleDestinationDrawer = () => {
     const title = "Where to?";
     const callbacks = {
-      onChange: (event) =>
-        dispatch(setDestinationAirport(event.target.destination_airport.value)),
+      onChange: (selectedLocation) => {
+        dispatch(setDestination(selectedLocation));
+        closeModal();
+      },
     };
-    const content = <Locations onChange={callbacks.onChange} flights origin />;
+    const content = <Locations onChange={callbacks.onChange} />;
 
     openModal(title, content, callbacks);
   };
 
   const handleCalendarDrawer = () => {
     const title = "Choose your dates";
-    const callbacks = {};
+    const callbacks = {
+      onChange: (selectedDates) => {
+        dispatch(setDates(selectedDates));
+        closeModal();
+      },
+    };
     const content = <Calendar onChange={callbacks.onChange} />;
 
     openModal(title, content, callbacks);
@@ -114,20 +117,6 @@ export default function FlightSearch() {
     openModal(title, content, callbacks);
   };
 
-  // const origin = originIata;
-  // const destination = destinationIata;
-  // const date = outboundDate;
-  // const returnDate = "";
-  // const cabinClass = travelClass;
-  // const passengers = [];
-
-  const origin = "CAN";
-  const originDisplay = "Guangzhou";
-  const destination = "PVG";
-  const destinationDisplay = "Shanghai";
-  const date = "2023-09-05";
-  const returnDate = "2023-09-15";
-  const cabinClass = "business";
   const passengers = {
     adults: 1,
     children: 0,
@@ -141,13 +130,13 @@ export default function FlightSearch() {
     setErrorMessage(null); // Reset error message on new submission
 
     const queryParams = {
-      origin,
-      originDisplay,
-      destination,
-      destinationDisplay,
-      date,
-      returnDate,
-      cabinClass,
+      originIata: origin.iata,
+      originName: origin.name,
+      destinationIata: destination.iata,
+      destinationName: destination.name,
+      outboundDate: dates.outbound,
+      inboundDate: dates.inbound,
+      travelClass,
       adults: passengers.adults,
       children: passengers.children,
       infants: passengers.infants,
@@ -157,6 +146,8 @@ export default function FlightSearch() {
 
     router.push(`/flights/results?${queryString}`);
   };
+
+  console.log(dates.outbound);
 
   return (
     <section>
@@ -195,32 +186,40 @@ export default function FlightSearch() {
         <Cell span={[4, 2, 4]}>
           <InputText
             label="From"
-            value={`${originAirport}${originIata ? ` (${originIata})` : ""}`}
+            value={`${origin.airport}${origin.iata ? ` (${origin.iata})` : ""}`}
             placeholder="City or airport"
-            subText={originName}
+            subText={`${origin.name}, ${origin.country}`}
             onClick={handleOriginDrawer}
           />
         </Cell>
         <Cell span={[4, 2, 4]}>
           <InputText
             label="To"
-            value={`${destinationAirport}${
-              destinationIata ? ` (${destinationIata})` : ""
+            value={`${destination.airport}${
+              destination.iata ? ` (${destination.iata})` : ""
             }`}
             placeholder="City or airport"
-            subText={destinationName || "Any worldwide airport"}
+            subText={
+              `${destination.name}, ${destination.country}` ||
+              "Any worldwide airport"
+            }
             onClick={handleDestinationDrawer}
           />
         </Cell>
         <Cell span={[2, 2, 2]}>
           <InputDatePick
             label="Departure"
-            value={outboundDate}
+            value={dates.outbound}
+            placeholder="+ Add date"
             onClick={handleCalendarDrawer}
           />
         </Cell>
         <Cell span={[2, 2, 2]}>
-          <InputDatePick label="Return" placeholder="+ Add date" />
+          <InputDatePick
+            label="Return"
+            value={dates.inbound}
+            placeholder="+ Add date"
+          />
         </Cell>
       </Grid>
       <Grid gridGaps={[0]} gridGutters={[12, 6, 12]} gridMargins={[0]}>

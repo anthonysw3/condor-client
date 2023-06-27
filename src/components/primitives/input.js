@@ -1,12 +1,7 @@
 import React, { useState, useEffect } from "react";
-import {
-  parseISO,
-  formatISO,
-  addDays,
-  subDays,
-  isValid,
-  format,
-} from "date-fns";
+
+// DayJS
+import dayjs from "dayjs";
 
 // Base Web
 import { Block } from "baseui/block";
@@ -64,18 +59,6 @@ const DateButton = styled(LabelXSmall, ({ $theme }) => ({
   color: $theme.colors.primary,
   marginRight: $theme.sizing.scale900,
 }));
-
-// Function to check if a date string is valid
-function isValidDate(dateString) {
-  const date = parseISO(dateString);
-  return !isNaN(date);
-}
-
-// Format date for display
-function formatDateDisplay(dateString) {
-  const date = parseISO(dateString);
-  return format(date, "EEE, dd MMM");
-}
 
 export const InputPersons = ({ label, passengers, onClick, ...props }) => {
   const disableDecrement = passengers < 2;
@@ -344,7 +327,7 @@ export const InputDatePick = ({
         </LabelWrapper>
         <Input
           clearable={clearable}
-          value={value}
+          value={value && dayjs(value).format("ddd, DD MMM")}
           onChange={(event) => setValue(event.target.value)}
           endEnhancer={() => <IconCalendarEvent size={22} />}
           placeholder={placeholder}

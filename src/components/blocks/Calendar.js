@@ -1,10 +1,21 @@
 import React, { useState, useEffect } from "react";
+
+// Redux
+import { useSelector, useDispatch } from "react-redux";
+import { setDates } from "../utils/slices/flightSlice";
+
+// Base Web
 import { FlexGrid, FlexGridItem } from "baseui/flex-grid";
 import { Block } from "baseui/block";
 import { LabelMedium, LabelSmall } from "baseui/typography";
+
+// Day.js
 import dayjs from "dayjs";
 
 const Calendar = () => {
+  const { outbound, inbound } = useSelector((state) => state.flight.dates);
+  const dispatch = useDispatch();
+
   const startDate = dayjs().startOf("month");
   const currentDate = dayjs();
 
@@ -28,7 +39,10 @@ const Calendar = () => {
     ));
   };
 
-  const [selectedDates, setSelectedDates] = useState([]);
+  const [selectedDates, setSelectedDates] = useState([
+    dayjs(outbound),
+    dayjs(inbound),
+  ]);
 
   const handleDateSelect = (date) => {
     const isPast = date.isBefore(currentDate, "day");
@@ -48,11 +62,28 @@ const Calendar = () => {
       );
     } else {
       setSelectedDates((prevSelectedDates) => {
-        if (prevSelectedDates.length >= 2) {
-          return [prevSelectedDates[1], date];
-        } else {
-          return [...prevSelectedDates, date];
+        let newSelectedDates =
+          prevSelectedDates.length >= 2
+            ? [prevSelectedDates[1], date]
+            : [...prevSelectedDates, date];
+
+        // If we have two dates, sort them by proximity to current date.
+        // The date closest to now will be the outbound date.
+        if (newSelectedDates.length === 2) {
+          newSelectedDates = newSelectedDates.sort(
+            (a, b) => a.diff(currentDate) - b.diff(currentDate)
+          );
         }
+
+        // Dispatch an action to update the dates in your Redux store.
+        dispatch(
+          setDates({
+            outbound: newSelectedDates[0].format("YYYY-MM-DD"),
+            inbound: newSelectedDates[1]?.format("YYYY-MM-DD"),
+          })
+        );
+
+        return newSelectedDates;
       });
     }
   };

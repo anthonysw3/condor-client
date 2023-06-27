@@ -2,22 +2,85 @@ import React, { useState } from "react";
 
 // Base Web
 import { Block } from "baseui/block";
+import { Button } from "baseui/button";
 import { Badge, HIERARCHY, COLOR } from "baseui/badge";
-import { Checkbox, STYLE_TYPE, LABEL_PLACEMENT } from "baseui/checkbox";
-import { ListItem, ListItemLabel } from "baseui/list";
+import { Checkbox, STYLE_TYPE } from "baseui/checkbox";
 
 // Icons
-import { IconCurrentLocation, IconPlaneTilt } from "@tabler/icons-react";
+import { IconCurrentLocation } from "@tabler/icons-react";
 
 // Condor Components
 import { InputText } from "../primitives/input";
 import { List } from "../primitives/list";
 
-export default function Locations({ origin, flights }) {
-  const [location, setLocation] = useState("");
+const testLocations = [
+  {
+    airport: "London Heathrow",
+    city: "London",
+    country: "United Kingdom",
+    iata: "LHR",
+  },
+  {
+    airport: "Guangzhou Baiyun",
+    city: "Guangzhou",
+    country: "China",
+    iata: "CAN",
+  },
+  {
+    airport: "New York JFK",
+    city: "New York",
+    country: "United States",
+    iata: "JFK",
+  },
+  {
+    airport: "Las Vegas McCarran",
+    city: "Las Vegas",
+    country: "United States",
+    iata: "LAS",
+  },
+  {
+    airport: "Sydney Kingsford Smith",
+    city: "Sydney",
+    country: "Australia",
+    iata: "SYD",
+  },
+  {
+    airport: "Bangkok Suvarnabhumi",
+    city: "Bangkok",
+    country: "Thailand",
+    iata: "BKK",
+  },
+  {
+    airport: "Hong Kong International",
+    city: "Hong Kong",
+    country: "Hong Kong SAR",
+    iata: "HKG",
+  },
+  {
+    airport: "Manchester Airport",
+    city: "Manchester",
+    country: "United Kingdom",
+    iata: "MAN",
+  },
+  {
+    airport: "Larnaca International",
+    city: "Larnaca",
+    country: "Cyprus",
+    iata: "LCA",
+  },
+];
+
+export default function Locations({ onChange }) {
+  const [locationSearch, setLocationSearch] = useState("");
   const [nearby, setNearby] = useState(false);
+
   const handleLocationChange = (event) => {
-    setLocation(event.target.value);
+    setLocationSearch(event.target.value);
+  };
+
+  const handleLocationClick = (selectedLocation) => {
+    setLocationSearch("");
+    onChange(selectedLocation); // Invoke the onChange callback with the selected location
   };
 
   return (
@@ -47,20 +110,27 @@ export default function Locations({ origin, flights }) {
           }
         />
       </Block>
-      {location ? (
+      {locationSearch ? (
         <Block>
-          <List
-            icon={<IconPlaneTilt size={20} />}
-            label="London Heathrow"
-            description="London, United Kingdom"
-            listEnd={
-              <Badge
-                content="LHR"
-                hierarchy={HIERARCHY.secondary}
-                color={COLOR.primary}
-              />
-            }
-          />
+          {testLocations.map((location) => (
+            <List
+              key={location.iata}
+              label={location.airport}
+              description={`${location.city}, ${location.country}`}
+              listEnd={
+                <>
+                  <Badge
+                    content={location.iata}
+                    hierarchy={HIERARCHY.secondary}
+                    color={COLOR.primary}
+                  />
+                  <Button onClick={() => handleLocationClick(location)}>
+                    Update
+                  </Button>
+                </>
+              }
+            />
+          ))}
         </Block>
       ) : (
         <Block>

@@ -1,7 +1,12 @@
 "use client";
 
 import React, { useEffect, useState } from "react";
+
+// Redux
 import { useSearchParams } from "next/navigation";
+
+// Day.js
+import dayjs from "dayjs";
 
 // Base Web
 import { Block } from "baseui/block";
@@ -21,13 +26,13 @@ export default function FlightResults() {
   const [isLoading, setIsLoading] = useState(true);
   const searchParams = useSearchParams();
 
-  const origin = searchParams.get("origin");
-  const originDisplay = searchParams.get("originDisplay");
-  const destination = searchParams.get("destination");
-  const destinationDisplay = searchParams.get("destinationDisplay");
-  const date = searchParams.get("date");
-  const returnDate = searchParams.get("returnDate");
-  const cabinClass = searchParams.get("cabinClass");
+  const origin = searchParams.get("originIata");
+  const originDisplay = searchParams.get("originName");
+  const destination = searchParams.get("destinationIata");
+  const destinationDisplay = searchParams.get("destinationName");
+  const date = searchParams.get("outboundDate");
+  const returnDate = searchParams.get("inboundDate");
+  const cabinClass = searchParams.get("travelClass");
 
   useEffect(() => {
     if (searchParams) {
@@ -67,7 +72,7 @@ export default function FlightResults() {
   console.log(data);
 
   if (isLoading) {
-    return <HeadingXSmall>Loading</HeadingXSmall>;
+    return <HeadingXSmall>Loading...</HeadingXSmall>;
   }
 
   if (data) {
@@ -97,7 +102,9 @@ export default function FlightResults() {
             },
           }}
         >
-          25 Jun - 19 Jul &bull; 2 passengers
+          {date && dayjs(date).format("DD MMM")}
+          {returnDate && ` - ${dayjs(returnDate).format("DD MMM")}`} &bull; 2
+          passengers
         </ParagraphSmall>
         <Notification
           closeable
