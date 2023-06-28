@@ -73,7 +73,8 @@ export default function Passengers() {
       <ParagraphXSmall>
         This must be the age of the passenger on the date of travel. Airlines
         have regulations in place regarding passengers under 18 travelling
-        alone. Please make sure you check the airline's policies before booking.
+        alone. Please make sure you check the airline&apos;s policies before
+        booking.
       </ParagraphXSmall>
       <ParagraphXSmall>
         Please note that some airlines also have additional policies on under 18

@@ -112,8 +112,9 @@ export default function LocationsSearch({ purpose }) {
         >
           <ListItemLabel>Nearby airports</ListItemLabel>
         </ListItem>
-        {filteredAirports.map((airport) => (
+        {filteredAirports.map((airport, index) => (
           <ListItem
+            key={index}
             endEnhancer={() => <Badge content={airport.iata_code} />}
             overrides={{
               Root: {
