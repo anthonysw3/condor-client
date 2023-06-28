@@ -32,6 +32,7 @@ import { IconSearch } from "@tabler/icons-react";
 // Components
 import Locations from "./Locations";
 import Calendar from "./Calendar";
+import { CalendarFooter } from "./Calendar";
 import Passengers from "./Passengers";
 import Status from "./Status";
 
@@ -72,7 +73,7 @@ export default function FlightSearch() {
     };
     const content = <Locations onChange={callbacks.onChange} />;
 
-    openModal(title, content, callbacks);
+    openModal(title, content, null, callbacks);
   };
 
   const handleDestinationDrawer = () => {
@@ -85,7 +86,7 @@ export default function FlightSearch() {
     };
     const content = <Locations onChange={callbacks.onChange} />;
 
-    openModal(title, content, callbacks);
+    openModal(title, content, null, callbacks);
   };
 
   const handleCalendarDrawer = () => {
@@ -97,8 +98,9 @@ export default function FlightSearch() {
       },
     };
     const content = <Calendar onChange={callbacks.onChange} />;
+    const footer = <CalendarFooter />;
 
-    openModal(title, content, callbacks);
+    openModal(title, content, footer, callbacks);
   };
 
   const handlePassengerDrawer = () => {
@@ -106,7 +108,7 @@ export default function FlightSearch() {
     const callbacks = {};
     const content = <Passengers onChange={callbacks.onChange} />;
 
-    openModal(title, content, callbacks);
+    openModal(title, content, null, callbacks);
   };
 
   const handleStatusDrawer = () => {
@@ -114,7 +116,7 @@ export default function FlightSearch() {
     const callbacks = {};
     const content = <Status onChange={callbacks.onChange} />;
 
-    openModal(title, content, callbacks);
+    openModal(title, content, null, callbacks);
   };
 
   const router = useRouter();

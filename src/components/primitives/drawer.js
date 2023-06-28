@@ -1,7 +1,8 @@
 import React, { useEffect, useRef } from "react";
 import { Block } from "baseui/block";
+import { Button } from "baseui/button";
 import { LabelMedium } from "baseui/typography";
-import { IconX } from "@tabler/icons-react";
+import { IconX, IconChevronRight } from "@tabler/icons-react";
 import { styled } from "baseui";
 import { motion, AnimatePresence } from "framer-motion";
 import { ContentAnimationContainer } from "baseui/accordion/styled-components";
@@ -49,6 +50,7 @@ const UtilityDrawer = ({
   direction = "right",
   title,
   content,
+  footer,
 }) => {
   const modalMountRef = useRef(null);
 
@@ -129,6 +131,7 @@ const UtilityDrawer = ({
             >
               {content}
             </Block>
+            {footer && footer}
           </DrawerContent>
         </AnimatedDrawerContainer>
       )}

@@ -17,6 +17,8 @@
     "eslint": "8.42.0",
     "eslint-config-next": "13.4.4",
     "framer-motion": "^10.12.16",
+    "fuse.js": "^6.6.2",
+    "lodash": "^4.17.21",
     "next": "13.4.4",
     "react": "18.2.0",
     "react-dom": "18.2.0",
@@ -26,5 +28,8 @@
     "styletron-engine-atomic": "^1.5.0",
     "styletron-react": "^6.1.0",
     "uuid": "^9.0.0"
+  },
+  "devDependencies": {
+    "worker-loader": "^3.0.8"
   }
 }

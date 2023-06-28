@@ -11,8 +11,8 @@ export const CondorProvider = ({ children }) => {
     callbacks: {},
   });
 
-  const openModal = (title, content, callbacks) => {
-    setModal({ isOpen: true, title, content, callbacks });
+  const openModal = (title, content, footer, callbacks) => {
+    setModal({ isOpen: true, title, content, footer, callbacks });
   };
 
   const closeModal = () => {
@@ -28,6 +28,7 @@ export const CondorProvider = ({ children }) => {
           onClose={closeModal}
           title={modal.title}
           content={modal.content}
+          footer={modal.footer}
           callbacks={modal.callbacks}
         />
       </ResponsiveContainer>

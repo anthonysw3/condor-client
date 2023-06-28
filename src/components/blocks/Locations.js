@@ -1,106 +1,24 @@
 import React, { useState, useEffect, useRef } from "react";
-
-// Base Web
 import { Block } from "baseui/block";
-import { Button } from "baseui/button";
 import { Badge, HIERARCHY, COLOR } from "baseui/badge";
 import { Checkbox, STYLE_TYPE } from "baseui/checkbox";
-
-// Icons
 import {
   IconCurrentLocation,
   IconPlaneTilt,
   IconBuildingSkyscraper,
 } from "@tabler/icons-react";
-
-// Condor Components
 import { InputText } from "../primitives/input";
 import { List } from "../primitives/list";
+import { airportData } from "../utils/airports";
+import Fuse from "fuse.js";
 
-const testLocations = [
-  {
-    type: "place",
-    airport: "London (All Airports)",
-    name: "London",
-    country: "United Kingdom",
-    iata: "LON",
-  },
-  {
-    type: "airport",
-    airport: "London Heathrow",
-    name: "London",
-    country: "United Kingdom",
-    iata: "LHR",
-  },
-  {
-    type: "airport",
-    airport: "Guangzhou Baiyun",
-    name: "Guangzhou",
-    country: "China",
-    iata: "CAN",
-  },
-  {
-    type: "airport",
-    airport: "New York JFK",
-    name: "New York",
-    country: "United States",
-    iata: "JFK",
-  },
-  {
-    type: "airport",
-    airport: "Las Vegas McCarran",
-    name: "Las Vegas",
-    country: "United States",
-    iata: "LAS",
-  },
-  {
-    type: "airport",
-    airport: "Sydney Kingsford Smith",
-    name: "Sydney",
-    country: "Australia",
-    iata: "SYD",
-  },
-  {
-    type: "airport",
-    airport: "Bangkok Suvarnabhumi",
-    name: "Bangkok",
-    country: "Thailand",
-    iata: "BKK",
-  },
-  {
-    type: "airport",
-    airport: "Hong Kong International",
-    name: "Hong Kong",
-    country: "Hong Kong SAR",
-    iata: "HKG",
-  },
-  {
-    type: "airport",
-    airport: "Manchester Airport",
-    name: "Manchester",
-    country: "United Kingdom",
-    iata: "MAN",
-  },
-  {
-    type: "airport",
-    airport: "Larnaca International",
-    name: "Larnaca",
-    country: "Cyprus",
-    iata: "LCA",
-  },
-  {
-    type: "airport",
-    airport: "Haikou Meilan",
-    name: "Haikou",
-    country: "China",
-    iata: "HAK",
-  },
-];
-
-export default function Locations({ onChange, isOpen }) {
+const Locations = ({ onChange, isOpen }) => {
   const [locationSearch, setLocationSearch] = useState("");
   const [nearby, setNearby] = useState(false);
+  const [isAskingForLocation, setIsAskingForLocation] = useState(false);
+  const [filteredLoc, setFilteredLoc] = useState([]);
   const inputRef = useRef(null);
+  const workerRef = useRef(null);
 
   useEffect(() => {
     if (isOpen) {
@@ -108,28 +26,31 @@ export default function Locations({ onChange, isOpen }) {
     }
   }, [isOpen]);
 
+  useEffect(() => {
+    const fuse = new Fuse(airportData, {
+      keys: ["name", "city", "iata_code"],
+      threshold: 0.3,
+    });
+
+    const searchResults = fuse.search(locationSearch.toLowerCase());
+    setFilteredLoc(searchResults.map((result) => result.item));
+  }, [locationSearch]);
+
   const handleLocationChange = (event) => {
     setLocationSearch(event.target.value);
   };
 
   const handleLocationClick = (selectedLocation) => {
-    setLocationSearch("");
-    onChange(selectedLocation); // Invoke the onChange callback with the selected location
+    if (
+      selectedLocation.type === "place" &&
+      selectedLocation.label === "Around me?"
+    ) {
+      setIsAskingForLocation(true);
+    } else {
+      setLocationSearch("");
+      onChange(selectedLocation);
+    }
   };
-
-  // Filter the testLocations based on the locationSearch value
-  const filteredLocations = testLocations.filter((location) => {
-    const searchTerm = locationSearch.toLowerCase();
-    const airportName = location.airport.toLowerCase();
-    const locationName = location.name.toLowerCase();
-    const iataCode = location.iata.toLowerCase();
-
-    return (
-      airportName.includes(searchTerm) ||
-      locationName.includes(searchTerm) ||
-      iataCode.includes(searchTerm)
-    );
-  });
 
   return (
     <Block>
@@ -160,29 +81,27 @@ export default function Locations({ onChange, isOpen }) {
           }
         />
       </Block>
-      {locationSearch ? (
+      {locationSearch && filteredLoc.length > 0 ? (
         <Block>
-          {filteredLocations.map((location) => (
+          {filteredLoc.map((location) => (
             <List
               key={location.iata}
               label={location.airport}
               description={`${location.name}, ${location.country}`}
               onClick={() => handleLocationClick(location)}
               icon={
-                location.type === "airport" ? (
-                  <IconPlaneTilt size={20} />
-                ) : (
+                location.type === "place" ? (
                   <IconBuildingSkyscraper size={20} />
+                ) : (
+                  <IconPlaneTilt size={20} />
                 )
               }
               listEnd={
-                <>
-                  <Badge
-                    content={location.iata}
-                    hierarchy={HIERARCHY.secondary}
-                    color={COLOR.primary}
-                  />
-                </>
+                <Badge
+                  content={location.iata}
+                  hierarchy={HIERARCHY.secondary}
+                  color={COLOR.primary}
+                />
               }
             />
           ))}
@@ -194,4 +113,6 @@ export default function Locations({ onChange, isOpen }) {
       )}
     </Block>
   );
-}
+};
+
+export default Locations;

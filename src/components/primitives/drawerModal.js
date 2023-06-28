@@ -12,6 +12,7 @@ const ResponsiveDrawerModal = ({
   title,
   content,
   callbacks,
+  footer,
 }) => {
   const isMobile = useMediaQuery({ query: "(max-width: 3000px)" });
 
@@ -30,6 +31,7 @@ const ResponsiveDrawerModal = ({
         anchor={ANCHOR.right}
         title={title}
         content={content}
+        footer={footer}
       />
     );
   } else {

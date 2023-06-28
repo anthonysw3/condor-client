@@ -1,5 +1,8 @@
 import React, { useState, useEffect } from "react";
 
+// Condor Components
+import { useCondor } from "../utils/CondorProvider";
+
 // Redux
 import { useSelector, useDispatch } from "react-redux";
 import { setDates } from "../utils/slices/flightSlice";
@@ -7,12 +10,15 @@ import { setDates } from "../utils/slices/flightSlice";
 // Base Web
 import { FlexGrid, FlexGridItem } from "baseui/flex-grid";
 import { Block } from "baseui/block";
-import { LabelMedium, LabelSmall } from "baseui/typography";
+import { Button } from "baseui/button";
+import { LabelMedium, LabelSmall, LabelLarge } from "baseui/typography";
 
 // Day.js
 import dayjs from "dayjs";
+import advancedFormat from "dayjs/plugin/advancedFormat";
+dayjs.extend(advancedFormat);
 
-const Calendar = () => {
+export default function Calendar() {
   const { outbound, inbound } = useSelector((state) => state.flight.dates);
   const dispatch = useDispatch();
 
@@ -29,7 +35,10 @@ const Calendar = () => {
         overrides={{
           Block: {
             style: ({ $theme }) => ({
+              backgroundColor: $theme.colors.primaryB,
               textAlign: "center",
+              marginTop: `-${$theme.sizing.scale700}`,
+              paddingTop: $theme.sizing.scale600,
             }),
           },
         }}
@@ -207,16 +216,16 @@ const Calendar = () => {
                     backgroundColor: isSelected
                       ? $theme.colors.primaryA
                       : isBetween
-                      ? $theme.colors.primary100
+                      ? $theme.colors.primary50
                       : "inherit",
                     ":hover": {
                       backgroundColor: isPast
                         ? "inherit"
-                        : $theme.colors.primary50,
+                        : $theme.colors.primaryB,
                       boxShadow: isPast
                         ? "none"
                         : `inset 0 0 0 1px ${$theme.colors.primary}`,
-                      color: isSelected ? $theme.colors.primary : "inherit",
+                      color: isSelected ? $theme.colors.primary50 : "inherit",
                     },
                   }),
                 },
@@ -315,11 +324,11 @@ const Calendar = () => {
       id="sticky-container"
       overrides={{
         Block: {
-          style: {
+          style: ({ $theme }) => ({
             position: isSticky ? "sticky" : "static",
             top: 0,
             zIndex: 1,
-          },
+          }),
         },
       }}
     >
@@ -336,6 +345,7 @@ const Calendar = () => {
               borderBottom: `1px solid ${$theme.colors.primary200}`,
               paddingBottom: $theme.sizing.scale500,
               marginBottom: $theme.sizing.scale500,
+
               color: isSticky ? $theme.colors.primary : "inherit",
             }),
           },
@@ -346,6 +356,102 @@ const Calendar = () => {
       {renderMonths()}
     </Block>
   );
-};
+}
 
-export default Calendar;
+export function CalendarFooter() {
+  const { outbound, inbound } = useSelector((state) => state.flight.dates);
+  const formatSelectedDate = (date) => {
+    return date ? dayjs(date).format("ddd, D MMM") : "--";
+  };
+  const { closeModal } = useCondor();
+  return (
+    <Block
+      overrides={{
+        Block: {
+          style: ({ $theme }) => ({
+            marginBottom: $theme.sizing.scale800,
+          }),
+        },
+      }}
+    >
+      <FlexGrid
+        flexGridColumnCount={2}
+        overrides={{
+          Block: {
+            style: ({ $theme }) => ({
+              paddingLeft: $theme.sizing.scale500,
+              paddingRight: $theme.sizing.scale500,
+              paddingTop: $theme.sizing.scale500,
+              paddingBottom: $theme.sizing.scale500,
+            }),
+          },
+        }}
+      >
+        <FlexGridItem>
+          <LabelSmall
+            overrides={{
+              Block: {
+                style: ({ $theme }) => ({
+                  color: $theme.colors.primary500,
+                  marginBottom: $theme.sizing.scale200,
+                }),
+              },
+            }}
+          >
+            Depart
+          </LabelSmall>
+          <LabelLarge
+            overrides={{
+              Block: {
+                style: ({ $theme }) => ({
+                  fontWeight: "bold",
+                }),
+              },
+            }}
+          >
+            {outbound ? formatSelectedDate(outbound) : "- -"}
+          </LabelLarge>
+        </FlexGridItem>
+        <FlexGridItem>
+          <LabelSmall
+            overrides={{
+              Block: {
+                style: ({ $theme }) => ({
+                  color: $theme.colors.primary500,
+                  marginBottom: $theme.sizing.scale200,
+                }),
+              },
+            }}
+          >
+            Return
+          </LabelSmall>
+          <LabelLarge
+            overrides={{
+              Block: {
+                style: ({ $theme }) => ({
+                  fontWeight: "bold",
+                  color: !inbound ? $theme.colors.primary300 : "inherit",
+                }),
+              },
+            }}
+          >
+            {inbound ? formatSelectedDate(inbound) : "- -"}
+          </LabelLarge>
+        </FlexGridItem>
+      </FlexGrid>
+      <Button
+        onClick={closeModal}
+        overrides={{
+          BaseButton: {
+            style: ({ $theme }) => ({
+              width: "100%",
+              marginTop: $theme.sizing.scale500,
+            }),
+          },
+        }}
+      >
+        {inbound ? "Select these dates" : "Search one way"}
+      </Button>
+    </Block>
+  );
+}

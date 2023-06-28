@@ -249,8 +249,9 @@ export default function FlightResult({ offer, cheapest, fastest }) {
   const handleDetailsDrawer = () => {
     const title = "Flight details";
     const content = <FlightDetails offer={offer} />;
+    const footer = <Footer />;
 
-    openModal(title, content);
+    openModal(title, content, footer);
   };
 
   return (
@@ -290,16 +291,16 @@ export default function FlightResult({ offer, cheapest, fastest }) {
         </Block>
         {cheapest && (
           <Badge
-            content="Cheapest"
-            hierarchy={HIERARCHY.secondary}
+            content="Lowest fare"
+            hierarchy={HIERARCHY.primary}
             color={COLOR.positive}
           />
         )}
 
         {fastest && (
           <Badge
-            content="Fastest"
-            hierarchy={HIERARCHY.secondary}
+            content="Quickest"
+            hierarchy={HIERARCHY.primary}
             color={COLOR.accent}
           />
         )}
@@ -437,5 +438,34 @@ export function FlightResultSkeleton() {
         />
       </Block>
     </Card>
+  );
+}
+
+function Footer() {
+  return (
+    <Block
+      overrides={{
+        Block: {
+          style: ({ $theme }) => ({
+            marginBottom: $theme.sizing.scale700,
+          }),
+        },
+      }}
+    >
+      <Button
+        onClick={() => alert("Do the books")}
+        endEnhancer={() => <IconChevronRight size={24} />}
+        overrides={{
+          BaseButton: {
+            style: ({ $theme }) => ({
+              width: "100%",
+              margin: 0,
+            }),
+          },
+        }}
+      >
+        Continue to book
+      </Button>
+    </Block>
   );
 }
