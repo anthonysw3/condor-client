@@ -39,6 +39,20 @@ export default function FlightResults() {
   const [data, setData] = useState([]);
 
   const fetchData = async () => {
+    const passengerArray = [];
+
+    for (let i = 0; i < adults; i++) {
+      passengerArray.push({ age: 21 });
+    }
+
+    for (let i = 0; i < children; i++) {
+      passengerArray.push({ age: 12 });
+    }
+
+    for (let i = 0; i < infants; i++) {
+      passengerArray.push({ age: 1 });
+    }
+    console.log(passengerArray);
     try {
       const response = await fetch("http://192.168.0.227:5000/api/search", {
         method: "POST",

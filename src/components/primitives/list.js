@@ -2,7 +2,7 @@ import React from "react";
 import { Block } from "baseui/block";
 import { LabelSmall, ParagraphSmall } from "baseui/typography";
 
-export const List = ({ icon, label, description, listEnd }) => {
+export const List = ({ icon, label, description, listEnd, onClick }) => {
   return (
     <Block
       overrides={{
@@ -16,6 +16,9 @@ export const List = ({ icon, label, description, listEnd }) => {
             marginBottom: $theme.sizing.scale500,
             paddingBottom: $theme.sizing.scale500,
           }),
+          props: {
+            onClick: onClick,
+          },
         },
       }}
     >

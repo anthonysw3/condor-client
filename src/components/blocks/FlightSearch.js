@@ -117,12 +117,6 @@ export default function FlightSearch() {
     openModal(title, content, callbacks);
   };
 
-  const passengers = {
-    adults: 1,
-    children: 0,
-    infants: 0,
-  };
-
   const router = useRouter();
 
   const handleSubmit = (e) => {
