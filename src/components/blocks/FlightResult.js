@@ -217,7 +217,7 @@ const FlightSliceBackup = ({ slice }) => {
   );
 };
 
-export default function FlightResult({ offer }) {
+export default function FlightResult({ offer, cheapest, fastest }) {
   const [css, theme] = useStyletron();
 
   const gradientLineStyle = {
@@ -288,7 +288,21 @@ export default function FlightResult({ offer }) {
             {offer.owner.name}
           </ParagraphSmall>
         </Block>
-        {/* <Badge content="Fastest" hierarchy={HIERARCHY.secondary} /> */}
+        {cheapest && (
+          <Badge
+            content="Cheapest"
+            hierarchy={HIERARCHY.secondary}
+            color={COLOR.positive}
+          />
+        )}
+
+        {fastest && (
+          <Badge
+            content="Fastest"
+            hierarchy={HIERARCHY.secondary}
+            color={COLOR.accent}
+          />
+        )}
       </Block>
       {offer.slices.map((slice, index) => (
         <FlightSlice key={index} slice={slice} />

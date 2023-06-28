@@ -85,6 +85,8 @@ export default function FlightResults() {
       setData((prevData) => [...prevData, ...offers]);
       setAfter(newAfter);
 
+      console.log("Success:", responseData);
+
       if (!newAfter) {
         setIsLoading(false);
       }
@@ -160,8 +162,39 @@ export default function FlightResults() {
         </Block>
       )}
 
-      {data.length > 0 &&
-        data.map((offer, index) => <FlightResult key={index} offer={offer} />)}
+      {data.length > 0 && (
+        <>
+          {/* Sort flights */}
+          {data
+            .sort((a, b) => a.total_amount - b.total_amount) // Sort by cheapest
+            .sort(
+              (a, b) => getTotalDuration(a.slices) - getTotalDuration(b.slices) // Sort by fastest
+            )
+            .map((offer, index) => {
+              const isCheapest = index === 0; // Check if it's the cheapest offer
+              const isFastest = index === 1; // Check if it's the fastest offer
+
+              return (
+                <FlightResult
+                  key={index}
+                  offer={offer}
+                  cheapest={isCheapest}
+                  fastest={isFastest}
+                />
+              );
+            })}
+        </>
+      )}
     </main>
   );
 }
+
+const getTotalDuration = (slices) => {
+  let totalDuration = 0;
+  slices.forEach((slice) => {
+    slice.segments.forEach((segment) => {
+      totalDuration += segment.duration;
+    });
+  });
+  return totalDuration;
+};

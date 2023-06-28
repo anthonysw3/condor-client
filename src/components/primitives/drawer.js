@@ -29,6 +29,9 @@ const DrawerContent = styled(Block, ({ $theme }) => ({
   overflow: "auto",
   position: "relative",
   zIndex: 1,
+  display: "flex",
+  flexDirection: "column",
+  flexGrow: 1,
 }));
 
 const CloseContainer = styled(Block, ({ $theme }) => ({
@@ -109,9 +112,17 @@ const UtilityDrawer = ({
                     marginBottom: $theme.sizing.scale700,
                     padding: `${$theme.sizing.scale700}`,
                     backgroundColor: `${$theme.colors.backgroundPrimary}`,
-                    overflow: "hidden",
+                    overflow: "auto",
                     borderRadius: $theme.borders.radius500,
                     boxShadow: "0 6px 12px -6px rgba(0, 0, 0, 0.1)", // Custom shadow style
+                    scrollbarWidth: "thin", // Hide the scrollbar for Firefox
+                    "::-webkit-scrollbar": {
+                      width: "6px", // Adjust the width of the scrollbar
+                    },
+                    "::-webkit-scrollbar-thumb": {
+                      backgroundColor: $theme.colors.scrollbarThumb, // Set the color of the scrollbar thumb
+                      borderRadius: "3px", // Adjust the border radius of the scrollbar thumb
+                    },
                   }),
                 },
               }}
