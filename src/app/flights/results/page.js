@@ -12,15 +12,20 @@ import dayjs from "dayjs";
 import { Block } from "baseui/block";
 import { HeadingXSmall, ParagraphSmall } from "baseui/typography";
 import { Notification } from "baseui/notification";
-import { expandBorderStyles } from "baseui/styles";
+import { Button, KIND, SIZE } from "baseui/button";
 
 // Condor Components
 import FlightResult from "@/components/blocks/FlightResult";
 import { FlightResultSkeleton } from "@/components/blocks/FlightResult";
 import { Card } from "@/components/primitives/card";
+import { ScrollingButtonCompact } from "@/components/primitives/button";
 
 // Icons
-import { IconArrowRight } from "@tabler/icons-react";
+import {
+  IconArrowRight,
+  IconChevronDown,
+  IconArrowsDiff,
+} from "@tabler/icons-react";
 
 export default function FlightResults() {
   const [isLoading, setIsLoading] = useState(true);
@@ -73,7 +78,7 @@ export default function FlightResults() {
               }
             : null,
           cabin_class: travelClass,
-          passengers: [{ type: "adult" }, { type: "adult" }],
+          passengers: passengerArray,
           after: after,
         }),
       });
@@ -114,11 +119,15 @@ export default function FlightResults() {
     }
   }, [after]);
 
-  console.log(origin.name);
+  const cardCount = 10;
 
-  // ...
-
-  console.log(origin.name);
+  const buttonOverrides = {
+    BaseButton: {
+      style: {
+        flexShrink: 0,
+      },
+    },
+  };
 
   return (
     <main>
@@ -136,24 +145,101 @@ export default function FlightResults() {
         }}
       >
         {origin.name}
-        <IconArrowRight size={20} /> {destination.name}
+        <Block
+          overrides={{
+            Block: {
+              style: ({ $theme }) => ({
+                marginLeft: $theme.sizing.scale300,
+                marginRight: $theme.sizing.scale300,
+                display: "flex",
+                alignItems: "center",
+              }),
+            },
+          }}
+        >
+          {destination ? (
+            <IconArrowsDiff size={20} />
+          ) : (
+            <IconArrowRight size={20} />
+          )}
+        </Block>
+        {destination.name}
       </HeadingXSmall>
-      <ParagraphSmall
+
+      <Block
+        size={SIZE.mini}
+        kind={KIND.secondary}
         overrides={{
           Block: {
             style: ({ $theme }) => ({
-              marginTop: $theme.sizing.scale100,
-              marginBottom: 0,
-              marginLeft: $theme.sizing.scale200,
+              display: "flex",
+              overflowX: "scroll",
+              flexWrap: "nowrap",
+              marginTop: $theme.sizing.scale200,
+              marginLeft: `-${$theme.sizing.scale600}`,
+              marginRight: `-${$theme.sizing.scale600}`,
+              paddingLeft: $theme.sizing.scale700,
+              paddingRight: $theme.sizing.scale600,
+              WebkitOverflowScrolling: "touch",
+              "&::-webkit-scrollbar": {
+                display: "none",
+              },
             }),
           },
         }}
       >
-        {outbound && dayjs(outbound).format("DD MMM")}
-        {inbound && ` - ${dayjs(inbound).format("DD MMM")}`} &bull;{" "}
-        {adults + children + infants} passenger
-        {adults + children + infants > 1 ? "s" : ""}
-      </ParagraphSmall>
+        <Button
+          size={SIZE.mini}
+          kind={KIND.secondary}
+          endEnhancer={() => <IconChevronDown size={16} />}
+          overrides={{
+            BaseButton: {
+              style: ({ $theme }) => ({
+                flex: "0 0 auto",
+                whiteSpace: "nowrap",
+                border: `1px solid ${$theme.colors.primary200}`,
+                marginRight: $theme.sizing.scale200,
+              }),
+            },
+          }}
+        >{`${outbound && dayjs(outbound).format("DD MMM")}${
+          inbound ? ` - ${dayjs(inbound).format("DD MMM")}` : ""
+        }`}</Button>
+        <Button
+          size={SIZE.mini}
+          kind={KIND.secondary}
+          endEnhancer={() => <IconChevronDown size={16} />}
+          overrides={{
+            BaseButton: {
+              style: ({ $theme }) => ({
+                flex: "0 0 auto",
+                whiteSpace: "nowrap",
+                border: `1px solid ${$theme.colors.primary200}`,
+                marginRight: $theme.sizing.scale200,
+              }),
+            },
+          }}
+        >{`${adults + children + infants} passenger${
+          adults + children + infants > 1 ? "s" : ""
+        }`}</Button>
+        <Button
+          size={SIZE.mini}
+          kind={KIND.secondary}
+          endEnhancer={() => <IconChevronDown size={16} />}
+          overrides={{
+            BaseButton: {
+              style: ({ $theme }) => ({
+                flex: "0 0 auto",
+                whiteSpace: "nowrap",
+                border: `1px solid ${$theme.colors.primary200}`,
+                marginRight: $theme.sizing.scale200,
+              }),
+            },
+          }}
+        >
+          {travelClass}
+        </Button>
+      </Block>
 
       {isLoading && (
         <Block>
@@ -162,29 +248,30 @@ export default function FlightResults() {
         </Block>
       )}
 
-      {data.length > 0 && (
-        <>
-          {/* Sort flights */}
-          {data
-            .sort((a, b) => a.total_amount - b.total_amount) // Sort by cheapest
-            .sort(
-              (a, b) => getTotalDuration(a.slices) - getTotalDuration(b.slices) // Sort by fastest
-            )
-            .map((offer, index) => {
-              const isCheapest = index === 0; // Check if it's the cheapest offer
-              const isFastest = index === 1; // Check if it's the fastest offer
+      {data
+        .sort((a, b) => a.total_amount - b.total_amount) // Sort by cheapest
+        .sort(
+          (a, b) => getTotalDuration(a.slices) - getTotalDuration(b.slices) // Sort by fastest
+        )
+        .filter((offer, index, array) => {
+          const lowestPrice = array[0].total_amount; // Get the lowest price
+          const maxPrice = lowestPrice * 5; // Calculate the maximum allowed price (500% of the lowest price)
+          return offer.total_amount <= maxPrice; // Filter out offers with price exceeding the maximum
+        })
+        .filter((offer) => offer.owner.iata_code !== "ZZ") // Filter out results from owner with iata_code ZZ
+        .map((offer, index) => {
+          const isCheapest = index === 0; // Check if it's the cheapest offer
+          const isFastest = index === 1; // Check if it's the fastest offer
 
-              return (
-                <FlightResult
-                  key={index}
-                  offer={offer}
-                  cheapest={isCheapest}
-                  fastest={isFastest}
-                />
-              );
-            })}
-        </>
-      )}
+          return (
+            <FlightResult
+              key={index}
+              offer={offer}
+              cheapest={isCheapest}
+              fastest={isFastest}
+            />
+          );
+        })}
     </main>
   );
 }

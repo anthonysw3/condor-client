@@ -28,7 +28,7 @@ const Locations = ({ onChange, isOpen }) => {
 
   useEffect(() => {
     const fuse = new Fuse(airportData, {
-      keys: ["name", "city", "iata_code"],
+      keys: ["airport", "name", "iata"],
       threshold: 0.3,
     });
 

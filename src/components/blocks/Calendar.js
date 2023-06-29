@@ -213,6 +213,11 @@ export default function Calendar() {
                     height: "100%",
                     aspectRatio: "1/1",
                     borderRadius: isBetween ? 0 : $theme.borders.radius300,
+                    color: isSelected
+                      ? $theme.colors.primary
+                      : isPast
+                      ? $theme.colors.primary300
+                      : "inherit",
                     backgroundColor: isSelected
                       ? $theme.colors.primaryA
                       : isBetween
@@ -225,7 +230,7 @@ export default function Calendar() {
                       boxShadow: isPast
                         ? "none"
                         : `inset 0 0 0 1px ${$theme.colors.primary}`,
-                      color: isSelected ? $theme.colors.primary50 : "inherit",
+                      color: isSelected ? $theme.colors.primary : "inherit",
                     },
                   }),
                 },
@@ -240,7 +245,7 @@ export default function Calendar() {
                         ? $theme.colors.primaryB
                         : isPast
                         ? $theme.colors.primary300
-                        : "inherit",
+                        : $theme.colors.primary,
                     }),
                   },
                 }}

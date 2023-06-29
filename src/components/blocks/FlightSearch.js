@@ -181,8 +181,9 @@ export default function FlightSearch() {
             }`}
             placeholder="City or airport"
             subText={
-              `${destination.name}, ${destination.country}` ||
-              "Any worldwide airport"
+              destination.name
+                ? `${destination.name}, ${destination.country}`
+                : "Any worldwide airport"
             }
             onClick={handleDestinationDrawer}
           />

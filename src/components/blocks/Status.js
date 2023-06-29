@@ -1,30 +1,63 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
+
+// Redux
+import { useDispatch, useSelector } from "react-redux";
+import { addProgram, removeProgram } from "../utils/slices/statusSlice";
 
 // Base Web
 import { Block } from "baseui/block";
 import { Button, KIND, SIZE, SHAPE } from "baseui/button";
-import {
-  Modal,
-  ModalHeader,
-  ModalBody,
-  ModalFooter,
-  ModalButton,
-  SIZE as MODAL_SIZE,
-  ROLE,
-} from "baseui/modal";
+import { ParagraphMedium } from "baseui/typography";
 
 // Icons
-import { IconCurrentLocation, IconPlaneTilt, IconX } from "@tabler/icons-react";
+import { IconX } from "@tabler/icons-react";
 
 // Condor Components
 import { InputText } from "../primitives/input";
 import { List } from "../primitives/list";
 
+// Fuse
+import Fuse from "fuse.js";
+
+// Airlines Data
+import { airlineData } from "../utils/airlines";
+
 export default function Status() {
-  const [airline, setAirline] = useState("");
+  const dispatch = useDispatch();
+  const [airlineSearch, setAirlineSearch] = useState("");
   const [isOpen, setIsOpen] = useState(false);
+  const [filteredAirlines, setFilteredAirlines] = useState([]);
+  const inputRef = useRef(null);
+  const selectedAirlines = useSelector((state) => state.status);
+
+  useEffect(() => {
+    if (isOpen) {
+      inputRef.current.focus();
+    }
+  }, [isOpen]);
+
+  useEffect(() => {
+    const fuse = new Fuse(airlineData, {
+      keys: ["name", "iata"],
+      threshold: 0.3,
+    });
+
+    const searchResults = fuse.search(airlineSearch.toLowerCase());
+    setFilteredAirlines(searchResults.map((result) => result.item));
+  }, [airlineSearch]);
+
   const handleAirlineChange = (event) => {
-    setAirline(event.target.value);
+    setAirlineSearch(event.target.value);
+  };
+
+  const handleAirlineClick = (selectedAirline) => {
+    console.log(selectedAirline);
+    dispatch(addProgram(selectedAirline));
+    setAirlineSearch("");
+  };
+
+  const handleRemoveAirline = (index) => {
+    dispatch(removeProgram(selectedAirlines[index]));
   };
 
   return (
@@ -33,32 +66,46 @@ export default function Status() {
         label="Airline"
         onChange={handleAirlineChange}
         placeholder="Search for an airline"
+        inputRef={inputRef}
       />
-      {airline ? (
-        <Block
-          overrides={{
-            Block: {
-              style: ({ $theme }) => ({
-                marginTop: $theme.sizing.scale700,
-              }),
-            },
-          }}
-        >
-          <List
-            icon={<IconPlaneTilt size={20} />}
-            label="British Airways"
-            description="Execuitive Club"
-            listEnd={
-              <Button
-                kind={KIND.secondary}
-                size={SIZE.mini}
-                shape={SHAPE.pill}
-                onClick={() => setIsOpen(true)}
-              >
-                Add
-              </Button>
-            }
-          />
+      {airlineSearch && filteredAirlines.length > 0 ? (
+        <Block>
+          {filteredAirlines.map((airline) => (
+            <Block
+              key={airline.name}
+              overrides={{
+                Block: {
+                  style: ({ $theme }) => ({
+                    marginTop: $theme.sizing.scale700,
+                  }),
+                },
+              }}
+            >
+              <List
+                icon={
+                  <Block
+                    as="img"
+                    src={airline.logo}
+                    alt={airline.name}
+                    width="30px"
+                    height="30px"
+                  />
+                }
+                label={airline.name}
+                description={airline.program.name}
+                listEnd={
+                  <Button
+                    kind={KIND.secondary}
+                    size={SIZE.mini}
+                    shape={SHAPE.pill}
+                    onClick={() => handleAirlineClick(airline)}
+                  >
+                    Add
+                  </Button>
+                }
+              />
+            </Block>
+          ))}
         </Block>
       ) : (
         <Block
@@ -70,37 +117,55 @@ export default function Status() {
             },
           }}
         >
-          <List
-            icon={<IconCurrentLocation size={20} />}
-            label="Cathay Pacific"
-            description="Diamond"
-            listEnd={
-              <Button
-                kind={KIND.secondary}
-                size={SIZE.mini}
-                shape={SHAPE.circle}
-              >
-                <IconX size={12} />
-              </Button>
-            }
-          />
+          {selectedAirlines && selectedAirlines.length > 0 ? (
+            selectedAirlines.map((airline, index) => (
+              <List
+                key={index}
+                icon={
+                  <Block
+                    as="img"
+                    src={airline.logo}
+                    alt={airline.name}
+                    width="30px"
+                    height="30px"
+                    overrides={{
+                      Block: {
+                        style: ({ $theme }) => ({
+                          borderRadius: $theme.borders.radius300,
+                        }),
+                      },
+                    }}
+                  />
+                }
+                label={airline.name}
+                description={airline.program.name}
+                listEnd={
+                  <Button
+                    kind={KIND.secondary}
+                    size={SIZE.mini}
+                    shape={SHAPE.circle}
+                    onClick={() => handleRemoveAirline(index)}
+                  >
+                    <IconX size={12} />
+                  </Button>
+                }
+              />
+            ))
+          ) : (
+            <ParagraphMedium
+              overrides={{
+                Block: {
+                  style: ({ $theme }) => ({
+                    marginLeft: $theme.sizing.scale300,
+                  }),
+                },
+              }}
+            >
+              No airline programs added
+            </ParagraphMedium>
+          )}
         </Block>
       )}
-      <Modal
-        onClose={() => setIsOpen(false)}
-        closeable
-        isOpen={isOpen}
-        animate
-        autoFocus
-        size={SIZE.default}
-        role={ROLE.dialog}
-        mountNode={document.getElementById("modalMountRef.current")}
-      >
-        <ModalBody>
-          Proin ut dui sed metus pharetra hend rerit vel non mi. Nulla ornare
-          faucibus ex, non facilisis nisl. Maecenas aliquet mauris ut tempus.
-        </ModalBody>
-      </Modal>
     </Block>
   );
 }

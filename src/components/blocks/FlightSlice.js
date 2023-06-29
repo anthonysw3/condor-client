@@ -31,12 +31,21 @@ const getCurrencySymbol = (currencyCode) => {
   }
 };
 
-const itemStyle = {
+const itemLeft = {
   style: {
     width: "25%",
     flexGrow: 0,
     display: "block",
-    textAlign: "center",
+    textAlign: "left",
+  },
+};
+
+const itemRight = {
+  style: {
+    width: "25%",
+    flexGrow: 0,
+    display: "block",
+    textAlign: "right",
   },
 };
 
@@ -114,12 +123,12 @@ export default function FlightSlice({ slice }) {
       overrides={{
         Block: {
           style: ({ $theme }) => ({
-            marginTop: $theme.sizing.scale600,
+            marginBottom: $theme.sizing.scale800,
           }),
         },
       }}
     >
-      <FlexGridItem overrides={{ Block: itemStyle }}>
+      <FlexGridItem overrides={{ Block: itemLeft }}>
         <LabelMedium
           overrides={{
             Block: {
@@ -163,9 +172,9 @@ export default function FlightSlice({ slice }) {
             .fill()
             .map((_, index) => (
               <FlexGridItem key={index}>
-                <Block overrides={{ Block: { style: gradientLineStyle } }}>
-                  <IconPlane style={planeIconStyle} size={16} />
-                </Block>
+                <Block
+                  overrides={{ Block: { style: gradientLineStyle } }}
+                ></Block>
               </FlexGridItem>
             ))}
         </FlexGrid>
@@ -189,7 +198,7 @@ export default function FlightSlice({ slice }) {
           />
         </Block>
       </FlexGridItem>
-      <FlexGridItem overrides={{ Block: itemStyle }}>
+      <FlexGridItem overrides={{ Block: itemRight }}>
         <LabelMedium
           overrides={{
             Block: {

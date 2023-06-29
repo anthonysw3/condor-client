@@ -54,6 +54,18 @@ const UtilityDrawer = ({
 }) => {
   const modalMountRef = useRef(null);
 
+  useEffect(() => {
+    if (isOpen) {
+      document.body.style.overflow = "hidden";
+    } else {
+      document.body.style.overflow = "unset";
+    }
+
+    return () => {
+      document.body.style.overflow = "unset";
+    };
+  }, [isOpen]);
+
   const handleOverlayClick = (e) => {
     if (e.target === e.currentTarget) {
       onClose();

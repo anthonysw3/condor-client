@@ -4,13 +4,20 @@ import storage from "redux-persist/lib/storage";
 import thunk from "redux-thunk";
 
 import flightSlice from "./slices/flightSlice";
+import statusSlice from "./slices/statusSlice";
 
-const persistConfig = {
-  key: "root", // Add a key for the root state
+const flightPersistConfig = {
+  key: "flight",
   storage,
 };
 
-const persistedFlightReducer = persistReducer(persistConfig, flightSlice);
+const statusPersistConfig = {
+  key: "status",
+  storage,
+};
+
+const persistedFlightReducer = persistReducer(flightPersistConfig, flightSlice);
+const persistedStatusReducer = persistReducer(statusPersistConfig, statusSlice);
 
 const logStateMiddleware = (store) => (next) => (action) => {
   console.log("Redux state:", store.getState()); // Log the current state
@@ -20,6 +27,7 @@ const logStateMiddleware = (store) => (next) => (action) => {
 const store = configureStore({
   reducer: {
     flight: persistedFlightReducer,
+    status: persistedStatusReducer,
   },
   middleware: [thunk, logStateMiddleware], // Add logStateMiddleware to the middleware array
 });
