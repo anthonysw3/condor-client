@@ -7,6 +7,9 @@ import { FlexGrid, FlexGridItem } from "baseui/flex-grid";
 import { Badge, HIERARCHY, COLOR } from "baseui/badge";
 import { useStyletron } from "baseui";
 
+// Icons
+import { IconCircleDot } from "@tabler/icons-react";
+
 // Helpers
 import { formatDuration } from "../utils/helpers/dateUtils";
 import { getCurrencySymbol } from "../utils/helpers/currencyUtils";
@@ -88,37 +91,37 @@ export default function FlightSlice({ slice }) {
             }}
           />
         </Block>
-        <FlexGrid
-          flexGridColumnCount={numSegments}
-          overrides={{
-            Block: {
-              style: ({ $theme }) => ({
-                marginTop: $theme.sizing.scale200,
-              }),
-            },
-          }}
-        >
+        <Block display="flex" justifyContent="center" alignItems="center">
           {Array(numSegments)
             .fill()
             .map((_, index) => (
-              <FlexGridItem key={index}>
+              <>
                 <Block
                   overrides={{
                     Block: {
                       style: ({ $theme }) => ({
-                        position: "relative",
                         height: "2px",
-                        background: `linear-gradient(to right, transparent, ${$theme.colors.primary200}, transparent)`,
-                        display: "flex",
-                        justifyContent: "center",
-                        alignItems: "center",
+                        width:
+                          index === 0 || index === numSegments - 1
+                            ? "100%"
+                            : $theme.sizing.scale1000,
+                        background:
+                          numSegments === 1
+                            ? `linear-gradient(to right, transparent, ${$theme.colors.primary200}, transparent)`
+                            : index === 0
+                            ? `linear-gradient(to right, transparent, ${$theme.colors.primary200})`
+                            : index === numSegments - 1
+                            ? `linear-gradient(to right, ${$theme.colors.primary200}, transparent)`
+                            : $theme.colors.primary200,
                       }),
                     },
                   }}
                 ></Block>
-              </FlexGridItem>
+                {index < numSegments - 1 && <IconCircleDot size={16} />}
+              </>
             ))}
-        </FlexGrid>
+        </Block>
+
         <Block>
           <Badge
             content={
@@ -127,7 +130,7 @@ export default function FlightSlice({ slice }) {
                 : `${numSegments - 1} stop${numSegments - 1 !== 1 ? "s" : ""}`
             }
             hierarchy={HIERARCHY.secondary}
-            color={numSegments < 2 ? COLOR.positive : COLOR.primary}
+            color={numSegments < 2 ? COLOR.positive : COLOR.warning}
             overrides={{
               Badge: {
                 style: ({ $theme }) => ({
