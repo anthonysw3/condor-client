@@ -2,9 +2,6 @@
 
 import React from "react";
 
-// Base Web
-import { Grid, Cell } from "baseui/layout-grid";
-
 // Containers
 import SearchTabs from "../components/containers/SearchTabs";
 

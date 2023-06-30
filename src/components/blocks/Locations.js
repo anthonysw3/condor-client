@@ -9,7 +9,7 @@ import {
 } from "@tabler/icons-react";
 import { InputText } from "../primitives/input";
 import { List } from "../primitives/list";
-import { airportData } from "../utils/airports";
+import { airportData } from "../utils/data/airports";
 import Fuse from "fuse.js";
 
 const Locations = ({ onChange, isOpen }) => {

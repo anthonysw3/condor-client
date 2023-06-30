@@ -2,7 +2,7 @@ import React from "react";
 
 // Redux
 import { useSelector, useDispatch } from "react-redux";
-import { setPassengers } from "../utils/slices/flightSlice";
+import { setPassengers } from "../utils/store/slices/flightSlice";
 
 // Base Web
 import { Block } from "baseui/block";

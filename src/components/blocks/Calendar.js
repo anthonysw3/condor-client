@@ -1,11 +1,11 @@
 import React, { useState, useEffect } from "react";
 
 // Condor Components
-import { useCondor } from "../utils/CondorProvider";
+import { useCondor } from "../utils/providers/CondorProvider";
 
 // Redux
 import { useSelector, useDispatch } from "react-redux";
-import { setDates } from "../utils/slices/flightSlice";
+import { setDates } from "../utils/store/slices/flightSlice";
 
 // Base Web
 import { FlexGrid, FlexGridItem } from "baseui/flex-grid";

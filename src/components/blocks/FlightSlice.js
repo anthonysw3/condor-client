@@ -2,61 +2,14 @@ import React from "react";
 
 // Base Web
 import { Block } from "baseui/block";
-import {
-  ParagraphSmall,
-  LabelSmall,
-  LabelMedium,
-  HeadingXSmall,
-} from "baseui/typography";
+import { LabelSmall, LabelMedium } from "baseui/typography";
 import { FlexGrid, FlexGridItem } from "baseui/flex-grid";
 import { Badge, HIERARCHY, COLOR } from "baseui/badge";
-import { Button, SIZE, SHAPE } from "baseui/button";
 import { useStyletron } from "baseui";
 
-// Icons
-import { IconPlane, IconChevronRight } from "@tabler/icons-react";
-
-// Helper function to convert currency code to symbol
-const getCurrencySymbol = (currencyCode) => {
-  // Add cases for other currency codes as needed
-  switch (currencyCode) {
-    case "GBP":
-      return "£";
-    case "USD":
-      return "$";
-    case "EUR":
-      return "€";
-    default:
-      return currencyCode;
-  }
-};
-
-const itemLeft = {
-  style: {
-    width: "25%",
-    flexGrow: 0,
-    display: "block",
-    textAlign: "left",
-  },
-};
-
-const itemRight = {
-  style: {
-    width: "25%",
-    flexGrow: 0,
-    display: "block",
-    textAlign: "right",
-  },
-};
-
-const wideItemStyle = {
-  style: {
-    width: "50%",
-    flexGrow: 0,
-    display: "block",
-    textAlign: "center",
-  },
-};
+// Helpers
+import { formatDuration } from "../utils/helpers/dateUtils";
+import { getCurrencySymbol } from "../utils/helpers/currencyUtils";
 
 export default function FlightSlice({ slice }) {
   // Determine outbound and arrival times
@@ -68,54 +21,9 @@ export default function FlightSlice({ slice }) {
     slice.segments.length === 0
       ? firstStop.arriving_at
       : lastSegment.arriving_at;
+
   // Determine number of segments
   const numSegments = slice.segments.length;
-
-  function formatDuration(isoDuration) {
-    const matches = isoDuration.match(/P(\d+D)?T?(\d+H)?(\d+M)?/);
-
-    if (!matches) {
-      throw new Error(`Invalid duration format: ${isoDuration}`);
-    }
-
-    let days = 0;
-    let hours = 0;
-    let minutes = 0;
-
-    if (matches[1]) {
-      days = parseInt(matches[1]);
-    }
-
-    if (matches[2]) {
-      hours = parseInt(matches[2]);
-    }
-
-    if (matches[3]) {
-      minutes = parseInt(matches[3]);
-    }
-
-    // Convert days to hours
-    hours += days * 24;
-
-    return `${hours}h ${minutes}m`;
-  }
-
-  const [css, theme] = useStyletron();
-
-  const gradientLineStyle = {
-    position: "relative",
-    height: "2px",
-    background: `linear-gradient(to right, transparent, ${theme.colors.primary200}, transparent)`,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  };
-
-  const planeIconStyle = {
-    position: "absolute",
-    top: "-7px", // Half of the icon size
-    opacity: 0.25,
-  };
 
   return (
     <FlexGrid
@@ -128,7 +36,18 @@ export default function FlightSlice({ slice }) {
         },
       }}
     >
-      <FlexGridItem overrides={{ Block: itemLeft }}>
+      <FlexGridItem
+        overrides={{
+          Block: {
+            style: {
+              width: "25%",
+              flexGrow: 0,
+              display: "block",
+              textAlign: "left",
+            },
+          },
+        }}
+      >
         <LabelMedium
           overrides={{
             Block: {
@@ -143,7 +62,18 @@ export default function FlightSlice({ slice }) {
         </LabelMedium>
         <LabelSmall>{slice.origin.iata_code}</LabelSmall>
       </FlexGridItem>
-      <FlexGridItem overrides={{ Block: wideItemStyle }}>
+      <FlexGridItem
+        overrides={{
+          Block: {
+            style: {
+              width: "50%",
+              flexGrow: 0,
+              display: "block",
+              textAlign: "center",
+            },
+          },
+        }}
+      >
         <Block>
           <Badge
             content={formatDuration(slice.duration)}
@@ -173,7 +103,18 @@ export default function FlightSlice({ slice }) {
             .map((_, index) => (
               <FlexGridItem key={index}>
                 <Block
-                  overrides={{ Block: { style: gradientLineStyle } }}
+                  overrides={{
+                    Block: {
+                      style: ({ $theme }) => ({
+                        position: "relative",
+                        height: "2px",
+                        background: `linear-gradient(to right, transparent, ${$theme.colors.primary200}, transparent)`,
+                        display: "flex",
+                        justifyContent: "center",
+                        alignItems: "center",
+                      }),
+                    },
+                  }}
                 ></Block>
               </FlexGridItem>
             ))}
@@ -198,7 +139,18 @@ export default function FlightSlice({ slice }) {
           />
         </Block>
       </FlexGridItem>
-      <FlexGridItem overrides={{ Block: itemRight }}>
+      <FlexGridItem
+        overrides={{
+          Block: {
+            style: {
+              width: "25%",
+              flexGrow: 0,
+              display: "block",
+              textAlign: "right",
+            },
+          },
+        }}
+      >
         <LabelMedium
           overrides={{
             Block: {

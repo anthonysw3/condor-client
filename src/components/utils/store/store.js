@@ -20,7 +20,6 @@ const persistedFlightReducer = persistReducer(flightPersistConfig, flightSlice);
 const persistedStatusReducer = persistReducer(statusPersistConfig, statusSlice);
 
 const logStateMiddleware = (store) => (next) => (action) => {
-  console.log("Redux state:", store.getState()); // Log the current state
   return next(action); // Pass the action to the next middleware or the reducer
 };
 

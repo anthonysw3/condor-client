@@ -2,7 +2,7 @@ import React, { useState, useEffect, useRef } from "react";
 
 // Redux
 import { useDispatch, useSelector } from "react-redux";
-import { addProgram, removeProgram } from "../utils/slices/statusSlice";
+import { addProgram, removeProgram } from "../utils/store/slices/statusSlice";
 
 // Base Web
 import { Block } from "baseui/block";
@@ -20,7 +20,7 @@ import { List } from "../primitives/list";
 import Fuse from "fuse.js";
 
 // Airlines Data
-import { airlineData } from "../utils/airlines";
+import { airlineData } from "../utils/data/airlines";
 
 export default function Status() {
   const dispatch = useDispatch();

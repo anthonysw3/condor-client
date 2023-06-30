@@ -3,22 +3,19 @@
 import React, { useEffect, useState } from "react";
 
 // Redux
-import { useSelector, useDispatch } from "react-redux";
+import { useSelector } from "react-redux";
 
 // Day.js
 import dayjs from "dayjs";
 
 // Base Web
 import { Block } from "baseui/block";
-import { HeadingXSmall, ParagraphSmall } from "baseui/typography";
-import { Notification } from "baseui/notification";
+import { HeadingXSmall } from "baseui/typography";
 import { Button, KIND, SIZE } from "baseui/button";
 
 // Condor Components
 import FlightResult from "@/components/blocks/FlightResult";
-import { FlightResultSkeleton } from "@/components/blocks/FlightResult";
-import { Card } from "@/components/primitives/card";
-import { ScrollingButtonCompact } from "@/components/primitives/button";
+import { FlightResultSkeleton } from "@/components/containers/Skeletons";
 
 // Icons
 import {
@@ -27,12 +24,20 @@ import {
   IconArrowsDiff,
 } from "@tabler/icons-react";
 
+// Helpers
+import { getTotalDuration } from "../../../components/utils/helpers/flightUtils";
+import { formatDatetoDateMonth } from "../../../components/utils/helpers/dateUtils";
+
+// API Fetch
+import { fetchFlightOffers } from "../../../services/flights/duffelApi";
+
 export default function FlightResults() {
-  const [isLoading, setIsLoading] = useState(true);
-  const dispatch = useDispatch();
+  // State
+  const [isLoading, setIsLoading] = useState(true); // API loading
+  const [after, setAfter] = useState(null); // API pagination
+  const [data, setData] = useState([]); // API response
 
-  const [after, setAfter] = useState(null); // new state variable
-
+  // Store
   const {
     origin,
     destination,
@@ -41,56 +46,25 @@ export default function FlightResults() {
     passengers: { adults, children, infants },
   } = useSelector((state) => state.flight);
 
-  const [data, setData] = useState([]);
-
-  const fetchData = async () => {
-    const passengerArray = [];
-
-    for (let i = 0; i < adults; i++) {
-      passengerArray.push({ age: 21 });
-    }
-
-    for (let i = 0; i < children; i++) {
-      passengerArray.push({ age: 12 });
-    }
-
-    for (let i = 0; i < infants; i++) {
-      passengerArray.push({ age: 1 });
-    }
-    console.log(passengerArray);
+  // Fetch Flight Offers
+  const getFlightOffers = async () => {
     try {
-      const response = await fetch("http://192.168.0.227:5000/api/search", {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          outbound: {
-            origin: origin.iata,
-            destination: destination.iata,
-            date: outbound,
-          },
-          returnJourney: inbound
-            ? {
-                origin: destination.iata,
-                destination: origin.iata,
-                date: inbound,
-              }
-            : null,
-          cabin_class: travelClass,
-          passengers: passengerArray,
-          after: after,
-        }),
+      const flightOffers = await fetchFlightOffers({
+        origin,
+        destination,
+        outbound,
+        inbound,
+        travelClass,
+        adults,
+        children,
+        infants,
+        after,
       });
-
-      const responseData = await response.json();
-      const offers = responseData.offersResponse?.data || [];
-      const newAfter = responseData.offersResponse?.meta?.after || null;
+      const offers = flightOffers.offersResponse?.data || [];
+      const newAfter = flightOffers.offersResponse?.meta?.after || null;
 
       setData((prevData) => [...prevData, ...offers]);
       setAfter(newAfter);
-
-      console.log("Success:", responseData);
 
       if (!newAfter) {
         setIsLoading(false);
@@ -101,7 +75,7 @@ export default function FlightResults() {
   };
 
   useEffect(() => {
-    fetchData();
+    getFlightOffers();
   }, [
     origin,
     destination,
@@ -115,19 +89,9 @@ export default function FlightResults() {
 
   useEffect(() => {
     if (after) {
-      fetchData();
+      getFlightOffers();
     }
   }, [after]);
-
-  const cardCount = 10;
-
-  const buttonOverrides = {
-    BaseButton: {
-      style: {
-        flexShrink: 0,
-      },
-    },
-  };
 
   return (
     <main>
@@ -202,8 +166,8 @@ export default function FlightResults() {
               }),
             },
           }}
-        >{`${outbound && dayjs(outbound).format("DD MMM")}${
-          inbound ? ` - ${dayjs(inbound).format("DD MMM")}` : ""
+        >{`${formatDatetoDateMonth(outbound)}${
+          inbound ? ` - ${formatDatetoDateMonth(inbound)}` : ""
         }`}</Button>
         <Button
           size={SIZE.mini}
@@ -245,6 +209,8 @@ export default function FlightResults() {
         <Block>
           <FlightResultSkeleton />
           <FlightResultSkeleton />
+          <FlightResultSkeleton />
+          <FlightResultSkeleton />
         </Block>
       )}
 
@@ -275,13 +241,3 @@ export default function FlightResults() {
     </main>
   );
 }
-
-const getTotalDuration = (slices) => {
-  let totalDuration = 0;
-  slices.forEach((slice) => {
-    slice.segments.forEach((segment) => {
-      totalDuration += segment.duration;
-    });
-  });
-  return totalDuration;
-};

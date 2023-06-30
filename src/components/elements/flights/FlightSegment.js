@@ -17,9 +17,6 @@ import {
   IconToolsKitchen2,
 } from "@tabler/icons-react";
 
-// Components
-import Steps from "../global/Steps";
-
 export default function FlightSegment() {
   return (
     <article>
@@ -51,9 +48,7 @@ export default function FlightSegment() {
               }),
             },
           }}
-        >
-          <Steps />
-        </Block>
+        ></Block>
         <Block
           overrides={{
             Block: {

@@ -3,7 +3,7 @@ import React from "react";
 // Base Web
 import { Block } from "baseui/block";
 
-export default function Steps() {
+export function Timeline() {
   return (
     <Block
       height="105px"

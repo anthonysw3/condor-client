@@ -1,20 +1,22 @@
 "use client";
 
 import { Client as Styletron } from "styletron-engine-atomic";
+import { Server as StyletronServer } from "styletron-engine-atomic";
 import { Provider as StyletronProvider } from "styletron-react";
 import { BaseProvider } from "baseui";
 import { styled } from "baseui";
 
 // Condor
 import CondorLightTheme from "../theme/CondorLightTheme";
-import { CondorProvider } from "../components/utils/CondorProvider";
+import { CondorProvider } from "../components/utils/providers/CondorProvider";
 
 // Redux
 import { Provider } from "react-redux";
 import { PersistGate } from "redux-persist/integration/react";
-import { store, persistor } from "../components/utils/store";
+import { store, persistor } from "../components/utils/store/store";
 
-const engine = new Styletron();
+const engine =
+  typeof window !== "undefined" ? new Styletron() : new StyletronServer();
 
 import "../components/styles/global.css";
 
@@ -28,10 +30,13 @@ const SiteBackground = styled("div", ({ $theme }) => ({
 export default function RootLayout({ children }) {
   return (
     <html lang="en">
-      <link
-        href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&display=swap"
-        rel="stylesheet"
-      />
+      <head>
+        <link
+          href="https://fonts.googleapis.com/css2?family=Sora:wght@100;200;300;400;500;600;700;800&display=swap"
+          rel="stylesheet"
+        />
+      </head>
+
       <body>
         <Provider store={store}>
           <PersistGate loading={null} persistor={persistor}>

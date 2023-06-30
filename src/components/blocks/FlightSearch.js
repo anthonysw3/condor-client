@@ -1,18 +1,6 @@
 import React, { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 
-// Redux
-import { useDispatch, useSelector } from "react-redux";
-import {
-  setOrigin,
-  setDestination,
-  setDates,
-  setTravelClass,
-} from "../utils/slices/flightSlice";
-
-// Condor
-import { useCondor } from "../utils/CondorProvider";
-
 // Base Web
 import { Grid, Cell } from "baseui/layout-grid";
 import { Button } from "baseui/button";
@@ -26,43 +14,55 @@ import {
   InputStatus,
 } from "../primitives/input";
 
-// Icons
-import { IconSearch } from "@tabler/icons-react";
-
 // Components
 import Locations from "./Locations";
-import Calendar from "./Calendar";
-import { CalendarFooter } from "./Calendar";
+import Calendar, { CalendarFooter } from "./Calendar";
 import Passengers from "./Passengers";
 import Status from "./Status";
 
-const selectTotalPassengers = (state) =>
-  state.flight.passengers.adults +
-  state.flight.passengers.children +
-  state.flight.passengers.infants;
+// Icons
+import { IconSearch } from "@tabler/icons-react";
+
+// Providers
+import { useCondor } from "../utils/providers/CondorProvider";
+
+// Store
+import { useDispatch, useSelector } from "react-redux";
+import {
+  setOrigin,
+  setDestination,
+  setDates,
+  setTravelClass,
+} from "../utils/store/slices/flightSlice";
+
+// Helpers
+import { getTotalPassengers } from "../utils/helpers/passengerUtils";
 
 export default function FlightSearch() {
-  // State
-  const buttonValues = ["Business", "First", "Premium", "Economy"];
+  // Provider Functions
+  const { openModal, closeModal } = useCondor();
+  const router = useRouter();
 
-  const [status, setStatus] = useState([]);
-  const [errorMessage, setErrorMessage] = useState(null);
+  // Values
+  const classButtonValues = ["Business", "First", "Premium", "Economy"];
 
-  // Redux
+  // Store
   const dispatch = useDispatch();
   const origin = useSelector((state) => state.flight.origin);
   const destination = useSelector((state) => state.flight.destination);
   const dates = useSelector((state) => state.flight.dates);
   const travelClass = useSelector((state) => state.flight.travelClass);
-  const totalPassengers = useSelector(selectTotalPassengers);
+  const totalPassengers = useSelector(getTotalPassengers);
 
-  const [selected, setSelected] = useState(buttonValues.indexOf(travelClass));
+  const [selected, setSelected] = useState(
+    classButtonValues.indexOf(travelClass)
+  );
+
   useEffect(() => {
-    setSelected(buttonValues.indexOf(travelClass));
+    setSelected(classButtonValues.indexOf(travelClass));
   }, [travelClass]);
 
-  const { openModal, closeModal } = useCondor();
-
+  // Handlers
   const handleOriginDrawer = () => {
     const title = "Where from?";
     const callbacks = {
@@ -119,16 +119,10 @@ export default function FlightSearch() {
     openModal(title, content, null, callbacks);
   };
 
-  const router = useRouter();
-
   const handleSubmit = (e) => {
     e.preventDefault();
-    setErrorMessage(null);
-
     router.push("/flights/results");
   };
-
-  console.log(origin.name);
 
   return (
     <section>
@@ -139,11 +133,12 @@ export default function FlightSearch() {
         mode={MODE.radio}
         onClick={(_event, index) => {
           setSelected(index);
-          dispatch(setTravelClass(buttonValues[index]));
+          dispatch(setTravelClass(classButtonValues[index]));
         }}
         overrides={{
           Root: {
             style: ({ $theme }) => ({
+              marginBottom: $theme.sizing.scale600,
               overflowX: "auto visible",
               scrollbarWidth: "none",
               msOverflowStyle: "none",
@@ -161,9 +156,6 @@ export default function FlightSearch() {
       </ButtonGroup>
 
       <Grid gridGaps={[12, 6, 12]} gridGutters={[12, 6, 12]} gridMargins={[0]}>
-        <Cell span={[4, 8, 12]}>
-          {errorMessage && <div>{errorMessage}</div>}
-        </Cell>
         <Cell span={[4, 2, 4]}>
           <InputText
             label="From"
@@ -214,11 +206,7 @@ export default function FlightSearch() {
           />
         </Cell>
         <Cell span={[4, 5, 7]}>
-          <InputStatus
-            label="Frequent Flyer"
-            status={status}
-            onClick={handleStatusDrawer}
-          />
+          <InputStatus label="Frequent Flyer" onClick={handleStatusDrawer} />
         </Cell>
         <Cell span={[4, 2, 3]}>
           <Button

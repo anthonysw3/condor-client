@@ -1,90 +1,40 @@
 import React, { useState } from "react";
+
+// Base Web
 import { Block } from "baseui/block";
 import { Notification } from "baseui/notification";
-import { Badge, HIERARCHY, COLOR } from "baseui/badge";
 import { Button, KIND, SIZE, SHAPE } from "baseui/button";
-import {
-  MonoLabelSmall,
-  ParagraphMedium,
-  ParagraphSmall,
-  LabelSmall,
-  ParagraphXSmall,
-} from "baseui/typography";
+import { LabelMedium, ParagraphXSmall } from "baseui/typography";
 import { useStyletron } from "baseui";
 
-// Condor Components
-import Steps from "../elements/global/Steps";
+// Primitives
+import { Timeline } from "../primitives/timeline";
 
 // Icons
-import {
-  IconChevronDown,
-  IconChevronUp,
-  IconPlane,
-  IconMoonFilled,
-  IconWifi,
-  IconArmchair,
-  IconPlug,
-  IconDeviceTv,
-  IconToolsKitchen2,
-} from "@tabler/icons-react";
+import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
+
+// Components
 import FlightSlice from "./FlightSlice";
-import { Label } from "baseui/form-control/styled-components";
 
+// Helpers
+import { formatDuration, formatToTime } from "../utils/helpers/dateUtils";
+
+// Expanding Block
 function ExpandableBlock({ slice }) {
+  // State
   const [isOpen, setIsOpen] = useState(false);
-  const [css, theme] = useStyletron();
 
-  const containerStyle = css({
-    position: "relative",
-    marginBottom: isOpen ? "16px" : "0",
-  });
-
+  // Handlers
   const handleClick = () => {
     setIsOpen(!isOpen);
   };
 
-  function formatDuration(isoDuration) {
-    const matches = isoDuration.match(/P(\d+D)?T?(\d+H)?(\d+M)?/);
-
-    if (!matches) {
-      throw new Error(`Invalid duration format: ${isoDuration}`);
-    }
-
-    let days = 0;
-    let hours = 0;
-    let minutes = 0;
-
-    if (matches[1]) {
-      days = parseInt(matches[1]);
-    }
-
-    if (matches[2]) {
-      hours = parseInt(matches[2]);
-    }
-
-    if (matches[3]) {
-      minutes = parseInt(matches[3]);
-    }
-
-    // Convert days to hours
-    hours += days * 24;
-
-    return `${hours}h ${minutes}m`;
-  }
-
-  function formatToTime(dateTimeString) {
-    const dateObj = new Date(dateTimeString);
-    const hours = dateObj.getHours().toString().padStart(2, "0");
-    const minutes = dateObj.getMinutes().toString().padStart(2, "0");
-    return `${hours}:${minutes}`;
-  }
-
+  // Helpers
   function formatToDate(dateTimeString) {
     const dateObj = new Date(dateTimeString);
     const day = dateObj.getDate();
     const month = dateObj.toLocaleString("default", { month: "short" });
-    const year = dateObj.getFullYear().toString().slice(-2);
-    return `${day} ${month} ${year}`;
+    return `${day} ${month}`;
   }
 
   function calculateLayover(prevArrivingAt, nextDepartingAt) {
@@ -94,10 +44,67 @@ function ExpandableBlock({ slice }) {
     return diffInHours.toFixed(2);
   }
 
+  const numSegments = slice.segments.length;
+
+  function getLastSegmentArrivalDate() {
+    const lastSegment = slice.segments[slice.segments.length - 1];
+    return formatToDate(lastSegment.arriving_at);
+  }
+
+  const lastSegmentArrivalDate = getLastSegmentArrivalDate();
+  const isFirstAndLastSegmentOnSameDay =
+    slice.segments.length > 1 &&
+    formatToDate(slice.segments[0].arriving_at) === lastSegmentArrivalDate;
+
+  const lastSegmentArrivalTime = getLastSegmentArrivalDate();
+  const arrivalTime = formatToTime(lastSegmentArrivalTime);
+
   return (
     <Block>
+      <LabelMedium
+        overrides={{
+          Block: {
+            style: ({ $theme }) => ({
+              marginBottom: 0,
+              fontWeight: "bold",
+            }),
+          },
+        }}
+      >
+        Flight{numSegments > 1 ? "s" : ""} to {slice.destination.city_name}
+      </LabelMedium>
+      <ParagraphXSmall
+        overrides={{
+          Block: {
+            style: ({ $theme }) => ({
+              marginTop: $theme.sizing.scale100,
+              color: $theme.colors.contentSecondary,
+            }),
+          },
+        }}
+      >
+        {isFirstAndLastSegmentOnSameDay ? (
+          <>
+            <strong>Arrives {lastSegmentArrivalDate}</strong> &bull;{" "}
+          </>
+        ) : (
+          ""
+        )}
+        {numSegments < 2
+          ? "Direct"
+          : `${numSegments - 1} stop${numSegments - 1 !== 1 ? "s" : ""}`}{" "}
+      </ParagraphXSmall>
       <FlightSlice slice={slice} />
-      <Block className={containerStyle}>
+      <Block
+        overrides={{
+          Block: {
+            style: ({ $theme }) => ({
+              position: "relative",
+              marginBottom: isOpen ? "16px" : "0",
+            }),
+          },
+        }}
+      >
         {isOpen && (
           <Block>
             {slice.segments.reduce((segmentBlocks, currSegment, index) => {
@@ -115,7 +122,7 @@ function ExpandableBlock({ slice }) {
                 >
                   <Block>
                     <Block display="flex">
-                      <Steps />
+                      <Timeline />
                       <Block>
                         <Block display="flex" alignContent="center">
                           <ParagraphXSmall
@@ -270,12 +277,19 @@ function ExpandableBlock({ slice }) {
                   <Block key={`layover-${index}`}>
                     <Notification
                       overrides={{
-                        Body: { style: { width: "auto" } },
+                        Body: {
+                          style: ({ $theme }) => ({
+                            width: "auto",
+                            fontSize: $theme.typography.LabelSmall.fontSize,
+                          }),
+                        },
                       }}
                     >
-                      {formattedLayoverTime > 4
-                        ? `<stong>${formattedLayoverTime}</strong>`
-                        : formattedLayoverTime}{" "}
+                      {parseFloat(formattedLayoverTime) > 4 ? (
+                        <strong>{formattedLayoverTime}</strong>
+                      ) : (
+                        formattedLayoverTime
+                      )}{" "}
                       transfer in {currSegment.destination.iata_code}
                     </Notification>
                   </Block>
@@ -294,21 +308,16 @@ function ExpandableBlock({ slice }) {
           overrides={{
             Block: {
               style: ({ $theme }) => ({
-                padding: `${$theme.sizing.scale700}`,
-                borderRadius: $theme.borders.radius500,
+                marginBottom: $theme.sizing.scale800,
               }),
             },
           }}
         >
-          <Button
-            kind={KIND.secondary}
-            size={SIZE.compact}
-            shape={SHAPE.circle}
-          >
+          <Button kind={KIND.tertiary} size={SIZE.mini} shape={SHAPE.circle}>
             {isOpen ? (
-              <IconChevronUp size={24} />
+              <IconChevronUp size={16} />
             ) : (
-              <IconChevronDown size={24} />
+              <IconChevronDown size={16} />
             )}
           </Button>
         </Block>
@@ -319,10 +328,25 @@ function ExpandableBlock({ slice }) {
 
 export default function FlightDetails({ offer }) {
   return (
-    <>
+    <main>
       {offer.slices.map((slice, index) => (
         <ExpandableBlock key={index} slice={slice} />
       ))}
-    </>
+      <LabelMedium>
+        <strong>Baggage</strong>
+      </LabelMedium>
+      <ParagraphXSmall
+        overrides={{
+          Block: {
+            style: ({ $theme }) => ({
+              marginTop: $theme.sizing.scale100,
+              color: $theme.colors.contentSecondary,
+            }),
+          },
+        }}
+      >
+        The total baggage included in this fare
+      </ParagraphXSmall>
+    </main>
   );
 }

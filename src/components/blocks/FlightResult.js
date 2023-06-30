@@ -1,85 +1,37 @@
 import React from "react";
 import { useRouter } from "next/navigation";
 
-// Condor
-import { useCondor } from "../utils/CondorProvider";
-
-// Redux
-import { useSelector, useDispatch } from "react-redux";
-
 // Base Web
 import { Block } from "baseui/block";
-import {
-  ParagraphSmall,
-  ParagraphXSmall,
-  LabelSmall,
-  LabelMedium,
-  HeadingXSmall,
-} from "baseui/typography";
-import { FlexGrid, FlexGridItem } from "baseui/flex-grid";
-import { Badge, HIERARCHY, COLOR } from "baseui/badge";
+import { ParagraphXSmall, HeadingXSmall } from "baseui/typography";
 import { Button, SIZE, SHAPE } from "baseui/button";
 import { Skeleton } from "baseui/skeleton";
-import { useStyletron } from "baseui";
 
-// Icons
-import { IconPlane, IconChevronRight } from "@tabler/icons-react";
-
-// Condor Components
-import FlightDetails from "./FlightDetails";
-import FlightSlice from "./FlightSlice";
+// Primitives
 import { Card } from "../primitives/card";
 
-// Helper function to convert currency code to symbol
-const getCurrencySymbol = (currencyCode) => {
-  // Add cases for other currency codes as needed
-  switch (currencyCode) {
-    case "GBP":
-      return "£";
-    case "USD":
-      return "$";
-    case "EUR":
-      return "€";
-    default:
-      return currencyCode;
-  }
-};
+// Components
+import FlightDetails from "./FlightDetails";
+import FlightSlice from "./FlightSlice";
 
-const itemStyle = {
-  style: {
-    width: "25%",
-    flexGrow: 0,
-    display: "block",
-    textAlign: "center",
-  },
-};
+// Icons
+import { IconChevronRight } from "@tabler/icons-react";
 
-const wideItemStyle = {
-  style: {
-    width: "50%",
-    flexGrow: 0,
-    display: "block",
-    textAlign: "center",
-  },
-};
+// Providers
+import { useCondor } from "../utils/providers/CondorProvider";
 
-export default function FlightResult({ offer, cheapest, fastest }) {
-  const [css, theme] = useStyletron();
+// Store
+import { useSelector } from "react-redux";
 
-  const gradientLineStyle = {
-    position: "relative",
-    height: "2px",
-    background: `linear-gradient(to right, transparent, ${theme.colors.primary200}, transparent)`,
-    display: "flex",
-    justifyContent: "center",
-    alignItems: "center",
-  };
+// Helpers
+import {
+  getCurrencySymbol,
+  formatPriceWithCommas,
+} from "../utils/helpers/currencyUtils";
 
-  const planeIconStyle = {
-    position: "absolute",
-    top: "-7px", // Half of the icon size
-    opacity: 0.25,
-  };
+export default function FlightResult({ offer }) {
+  // Provider Functions
+  const { openModal, closeModal } = useCondor();
 
   const {
     origin,
@@ -89,25 +41,19 @@ export default function FlightResult({ offer, cheapest, fastest }) {
     passengers: { adults, children, infants },
   } = useSelector((state) => state.flight);
 
+  // Helpers
   // Convert currency code to symbol
   const currencySymbol = getCurrencySymbol(offer.total_currency);
   // Calculate the number of passengers
   const passengerCount = offer.passengers.length;
-  console.log(passengerCount);
   // Calculate amount per passenger
   const amountPerPassenger = offer.total_amount / passengerCount;
-  console.log(amountPerPassenger);
   // Round up amount per passenger to the nearest whole number
   const roundedAmount = Math.ceil(amountPerPassenger);
 
-  const formatPriceWithCommas = (price) => {
-    return price.toLocaleString(); // Adds commas to the price
-  };
-
-  const { openModal, closeModal } = useCondor();
-
+  // Handlers
   const handleDetailsDrawer = () => {
-    const title = `Flight to ${destination.name}`;
+    const title = `Trip to ${destination.name}`;
     const content = <FlightDetails offer={offer} />;
     const footer = <Footer />;
 
@@ -115,35 +61,7 @@ export default function FlightResult({ offer, cheapest, fastest }) {
   };
 
   return (
-    <Card>
-      {/*<Block
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        overrides={{
-          Block: {
-            style: ({ $theme }) => ({
-              marginBottom: 0,
-            }),
-          },
-        }}
-      >
-        {cheapest && (
-          <Badge
-            content="Lowest fare"
-            hierarchy={HIERARCHY.primary}
-            color={COLOR.positive}
-          />
-        )}
-
-        {fastest && (
-          <Badge
-            content="Quickest"
-            hierarchy={HIERARCHY.primary}
-            color={COLOR.accent}
-          />
-        )}
-        </Block> */}
+    <Card onClick={handleDetailsDrawer}>
       {offer.slices.map((slice, index) => (
         <FlightSlice key={index} slice={slice} />
       ))}
@@ -169,12 +87,12 @@ export default function FlightResult({ offer, cheapest, fastest }) {
         </ParagraphXSmall>
       </Block>
       <Block
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
         overrides={{
           Block: {
             style: ({ $theme }) => ({
+              display: "flex",
+              justifyContent: "space-between",
+              alignItems: "center",
               marginTop: $theme.sizing.scale400,
             }),
           },
@@ -213,7 +131,6 @@ export default function FlightResult({ offer, cheapest, fastest }) {
           </ParagraphXSmall>
         </Block>
         <Button
-          onClick={handleDetailsDrawer}
           size={SIZE.compact}
           shape={SHAPE.pill}
           endEnhancer={() => <IconChevronRight size={18} />}
@@ -225,95 +142,10 @@ export default function FlightResult({ offer, cheapest, fastest }) {
               }),
             },
           }}
+          onClick={handleDetailsDrawer}
         >
           Select
         </Button>
-      </Block>
-    </Card>
-  );
-}
-
-export function FlightResultSkeleton() {
-  return (
-    <Card>
-      <Block
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        overrides={{
-          Block: {
-            style: ({ $theme }) => ({
-              marginBottom: $theme.sizing.scale800,
-            }),
-          },
-        }}
-      >
-        <Skeleton
-          rows={2}
-          width="200px"
-          overrides={{
-            Row: {
-              style: {
-                height: "10px",
-                marginBottom: "5px",
-              },
-            },
-          }}
-          animation
-        />
-      </Block>
-      <Skeleton
-        rows={2}
-        width="100%"
-        overrides={{
-          Row: {
-            style: {
-              height: "20px",
-              marginBottom: "5px",
-            },
-          },
-        }}
-        animation
-      />
-      <Block
-        display="flex"
-        justifyContent="space-between"
-        alignItems="center"
-        overrides={{
-          Block: {
-            style: ({ $theme }) => ({
-              marginTop: $theme.sizing.scale700,
-            }),
-          },
-        }}
-      >
-        <Skeleton
-          height="40px"
-          width="70px"
-          overrides={{
-            Root: {
-              style: ({ $theme }) => ({
-                marginTop: $theme.sizing.scale500,
-                marginBottom: 0,
-              }),
-            },
-          }}
-          animation
-        />
-        <Skeleton
-          height="40px"
-          width="90px"
-          animation
-          overrides={{
-            Root: {
-              style: ({ $theme }) => ({
-                marginTop: $theme.sizing.scale500,
-                marginBottom: 0,
-                borderRadius: $theme.borders.radius200,
-              }),
-            },
-          }}
-        />
       </Block>
     </Card>
   );

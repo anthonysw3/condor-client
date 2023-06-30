@@ -1,6 +1,6 @@
 import React, { useState, createContext, useContext } from "react";
-import ResponsiveDrawerModal from "../primitives/drawerModal";
-import ResponsiveContainer from "./ResponsiveContainer";
+import ResponsiveDrawerModal from "../../primitives/drawerModal";
+import ResponsiveContainer from "../containers/ResponsiveContainer";
 
 const CondorContext = createContext();
 
