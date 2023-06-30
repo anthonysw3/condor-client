@@ -167,7 +167,7 @@ export const InputPersons = ({ label, passengers, onClick, ...props }) => {
 };
 
 export const InputStatus = ({ label, status, onClick, ...props }) => {
-  const buttonLabel = status < 1 ? "Add program" : "Some";
+  const buttonLabel = status < 1 ? "Add program" : `${status} programs`;
   return (
     <Block
       overrides={{
