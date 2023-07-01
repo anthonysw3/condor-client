@@ -25,7 +25,7 @@ export const fetchFlightOffers = async ({
   }
 
   try {
-    const response = await fetch("http://192.168.0.227:5000/api/search", {
+    const response = await fetch("http://46.101.84.178:5000/api/search", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",
