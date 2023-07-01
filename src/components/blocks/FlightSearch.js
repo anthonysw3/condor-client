@@ -55,7 +55,9 @@ export default function FlightSearch() {
   const totalPassengers = useSelector(getTotalPassengers);
 
   const [selected, setSelected] = useState(
-    classButtonValues.indexOf(travelClass)
+    classButtonValues.indexOf(travelClass) !== -1
+      ? classButtonValues.indexOf(travelClass)
+      : 0
   );
 
   useEffect(() => {
@@ -128,7 +130,7 @@ export default function FlightSearch() {
     <section>
       <ButtonGroup
         selected={selected}
-        size={SIZE.mini}
+        size={SIZE.compact}
         shape={SHAPE.pill}
         mode={MODE.radio}
         onClick={(_event, index) => {

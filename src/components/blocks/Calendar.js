@@ -55,8 +55,9 @@ export default function Calendar() {
 
   const handleDateSelect = (date) => {
     const isPast = date.isBefore(currentDate, "day");
-    if (isPast) {
-      return; // Do not update selection for past dates
+    const isToday = date.isSame(currentDate, "day");
+    if (isPast || isToday) {
+      return; // Do not update selection for past or today's date
     }
 
     const isAlreadySelected = selectedDates.some((selectedDate) =>
@@ -179,7 +180,7 @@ export default function Calendar() {
                   justifyContent: "center",
                   width: `calc(100% / 7)`,
                   aspectRatio: "1/1",
-                  cursor: isPast ? "default" : "pointer",
+                  cursor: isPast || isToday ? "default" : "pointer",
                   borderRadius: "0",
                   borderBottomLeftRadius:
                     isBetween && isDateAdjacentToSelectedDate(date, j - 1)

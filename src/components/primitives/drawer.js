@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { Block } from "baseui/block";
 import { Button } from "baseui/button";
 import { LabelMedium } from "baseui/typography";
@@ -52,7 +52,20 @@ const UtilityDrawer = ({
   content,
   footer,
 }) => {
+  const [previousActiveElement, setPreviousActiveElement] = useState(null);
   const modalMountRef = useRef(null);
+
+  useEffect(() => {
+    // Store the currently active element when the drawer opens
+    if (isOpen) {
+      setPreviousActiveElement(document.activeElement);
+    } else {
+      // Restore focus to the previously active element when the drawer closes
+      if (previousActiveElement && previousActiveElement.focus) {
+        previousActiveElement.focus();
+      }
+    }
+  }, [isOpen, previousActiveElement]);
 
   useEffect(() => {
     if (isOpen) {

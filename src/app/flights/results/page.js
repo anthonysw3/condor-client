@@ -266,7 +266,7 @@ export default function FlightResults() {
         </Block>
       </Block>
       <Block
-        size={SIZE.mini}
+        size={SIZE.compact}
         kind={KIND.secondary}
         overrides={{
           Block: {
@@ -283,12 +283,21 @@ export default function FlightResults() {
               "&::-webkit-scrollbar": {
                 display: "none",
               },
+              // Hide scrollbar on Windows devices
+              "@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none)":
+                {
+                  "&::-webkit-scrollbar": {
+                    display: "none",
+                  },
+                  "-ms-overflow-style": "none",
+                  scrollbarWidth: "none",
+                },
             }),
           },
         }}
       >
         <Button
-          size={SIZE.mini}
+          size={SIZE.compact}
           kind={KIND.secondary}
           endEnhancer={() => <IconChevronDown size={16} />}
           overrides={{
@@ -306,7 +315,7 @@ export default function FlightResults() {
           inbound ? ` - ${formatDatetoDateMonth(inbound)}` : ""
         }`}</Button>
         <Button
-          size={SIZE.mini}
+          size={SIZE.compact}
           kind={KIND.secondary}
           endEnhancer={() => <IconChevronDown size={16} />}
           overrides={{

@@ -167,7 +167,7 @@ export const InputPersons = ({ label, passengers, onClick, ...props }) => {
 };
 
 export const InputStatus = ({ label, status, onClick, ...props }) => {
-  const buttonLabel = status < 1 ? "Add program" : `${status} programs`;
+  const buttonLabel = status < 1 ? "Add program" : `Add more programs`;
   return (
     <Block
       overrides={{
@@ -344,7 +344,14 @@ export const InputDatePick = ({
                 zIndex: 1,
               }),
               props: {
-                onClick: onClick,
+                onMouseDown: (event) => {
+                  event.preventDefault();
+                  onClick && onClick();
+                },
+                onFocus: (event) => {
+                  event.preventDefault();
+                  onClick && onClick();
+                },
               },
             },
             InputContainer: {

@@ -15,7 +15,7 @@ const flight = () => {
       iata: "",
     },
     dates: {
-      outbound: "2023-06-30",
+      outbound: null,
       inbound: null,
     },
     travelClass: "",
