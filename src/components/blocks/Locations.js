@@ -9,8 +9,6 @@ import {
 } from "@tabler/icons-react";
 import { InputText } from "../primitives/input";
 import { List } from "../primitives/list";
-import { airportData } from "../utils/data/airports";
-import Fuse from "fuse.js";
 
 const Locations = ({ onChange, isOpen }) => {
   const [locationSearch, setLocationSearch] = useState("");
@@ -20,6 +18,10 @@ const Locations = ({ onChange, isOpen }) => {
   const inputRef = useRef(null);
   const workerRef = useRef(null);
 
+  const handleLocationChange = (event) => {
+    setLocationSearch(event.target.value);
+  };
+
   useEffect(() => {
     if (isOpen) {
       inputRef.current.focus();
@@ -27,18 +29,20 @@ const Locations = ({ onChange, isOpen }) => {
   }, [isOpen]);
 
   useEffect(() => {
-    const fuse = new Fuse(airportData, {
-      keys: ["airport", "name", "iata"],
-      threshold: 0.3,
-    });
+    // Debounce the search operation
+    const delaySearch = setTimeout(() => {
+      if (locationSearch.length >= 2) {
+        fetch(`http://192.168.0.227:5000/api/airports?q=${locationSearch}`)
+          .then((response) => response.json())
+          .then((data) => setFilteredLoc(data));
+      } else {
+        setFilteredLoc([]);
+      }
+    }, 300);
 
-    const searchResults = fuse.search(locationSearch.toLowerCase());
-    setFilteredLoc(searchResults.map((result) => result.item));
+    // Cleanup the timeout on each input change
+    return () => clearTimeout(delaySearch);
   }, [locationSearch]);
-
-  const handleLocationChange = (event) => {
-    setLocationSearch(event.target.value);
-  };
 
   const handleLocationClick = (selectedLocation) => {
     if (

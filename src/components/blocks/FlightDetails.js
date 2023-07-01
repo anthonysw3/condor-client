@@ -4,14 +4,24 @@ import React, { useState } from "react";
 import { Block } from "baseui/block";
 import { Notification } from "baseui/notification";
 import { Button, KIND, SIZE, SHAPE } from "baseui/button";
-import { LabelMedium, ParagraphXSmall } from "baseui/typography";
+import {
+  LabelSmall,
+  LabelMedium,
+  ParagraphXSmall,
+  ParagraphSmall,
+} from "baseui/typography";
 import { useStyletron } from "baseui";
 
 // Primitives
 import { Timeline } from "../primitives/timeline";
 
 // Icons
-import { IconChevronDown, IconChevronUp } from "@tabler/icons-react";
+import {
+  IconChevronDown,
+  IconChevronUp,
+  IconLuggage,
+  IconBackpack,
+} from "@tabler/icons-react";
 
 // Components
 import FlightSlice from "./FlightSlice";
@@ -327,6 +337,44 @@ function ExpandableBlock({ slice }) {
 }
 
 export default function FlightDetails({ offer }) {
+  // Extract passengers and slices from the offer
+  const { passengers, slices } = offer;
+
+  // Function to calculate the total number of checked bags for all passengers
+  const getTotalCheckedBags = () => {
+    let totalCheckedBags = 0;
+    passengers.forEach((passenger) => {
+      if (passenger.baggages && passenger.baggages.length > 0) {
+        const checkedBaggage = passenger.baggages.find(
+          (baggage) => baggage.type === "checked"
+        );
+        if (checkedBaggage) {
+          totalCheckedBags += checkedBaggage.quantity;
+        }
+      }
+    });
+    return totalCheckedBags;
+  };
+
+  // Function to calculate the total number of cabin bags for all passengers
+  const getTotalCabinBags = () => {
+    let totalCabinBags = 0;
+    passengers.forEach((passenger) => {
+      if (passenger.baggages && passenger.baggages.length > 0) {
+        const cabinBaggage = passenger.baggages.find(
+          (baggage) => baggage.type === "cabin"
+        );
+        if (cabinBaggage) {
+          totalCabinBags += cabinBaggage.quantity;
+        }
+      }
+    });
+    return totalCabinBags;
+  };
+
+  // Calculate the total checked and cabin bags for all passengers
+  const totalCheckedBags = getTotalCheckedBags();
+  const totalCabinBags = getTotalCabinBags();
   return (
     <main>
       {offer.slices.map((slice, index) => (
@@ -347,6 +395,72 @@ export default function FlightDetails({ offer }) {
       >
         The total baggage included in this fare
       </ParagraphXSmall>
+      <div>
+        {/*{passengers.map((passenger, index) => (
+          <div key={index}>
+            <p>
+              Passenger {index + 1}:{" "}
+              {passenger.baggages ? passenger.baggages.length : 0} bags
+            </p>
+          </div>
+        ))}*/}
+        <Block>
+          <Block
+            overrides={{
+              Block: {
+                style: ({ $theme }) => ({
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: $theme.sizing.scale400,
+                }),
+              },
+            }}
+          >
+            <Block
+              overrides={{
+                Block: {
+                  style: ({ $theme }) => ({
+                    marginRight: $theme.sizing.scale400,
+                  }),
+                },
+              }}
+            >
+              <IconLuggage size={16} />
+            </Block>
+            <LabelSmall>
+              {totalCheckedBags > 0
+                ? `${totalCheckedBags} checked bags`
+                : "Not included"}
+            </LabelSmall>
+          </Block>
+          <Block
+            overrides={{
+              Block: {
+                style: ({ $theme }) => ({
+                  display: "flex",
+                  alignItems: "center",
+                  marginBottom: $theme.sizing.scale400,
+                }),
+              },
+            }}
+          >
+            <Block
+              overrides={{
+                Block: {
+                  style: ({ $theme }) => ({
+                    marginRight: $theme.sizing.scale400,
+                  }),
+                },
+              }}
+            >
+              <IconBackpack size={16} />
+            </Block>
+            <LabelSmall>
+              {totalCabinBags > 0 ? `${totalCabinBags} cabin bags` : "None"}
+            </LabelSmall>
+          </Block>
+        </Block>
+      </div>
     </main>
   );
 }

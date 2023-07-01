@@ -9,6 +9,7 @@
     "lint": "next lint"
   },
   "dependencies": {
+    "@elastic/elasticsearch": "^7.17.11-patch.1",
     "@reduxjs/toolkit": "^1.9.5",
     "@tabler/icons-react": "^2.21.0",
     "baseui": "^13.0.0",

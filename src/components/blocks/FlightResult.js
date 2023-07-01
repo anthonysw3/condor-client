@@ -29,7 +29,7 @@ import {
   formatPriceWithCommas,
 } from "../utils/helpers/currencyUtils";
 
-export default function FlightResult({ offer }) {
+export default function FlightResult({ offer, cheapest, fastest }) {
   // Provider Functions
   const { openModal, closeModal } = useCondor();
 
@@ -50,6 +50,7 @@ export default function FlightResult({ offer }) {
   const amountPerPassenger = offer.total_amount / passengerCount;
   // Round up amount per passenger to the nearest whole number
   const roundedAmount = Math.ceil(amountPerPassenger);
+  // Determine if the offer is the cheapest
 
   // Handlers
   const handleDetailsDrawer = () => {
@@ -61,7 +62,9 @@ export default function FlightResult({ offer }) {
   };
 
   return (
-    <Card onClick={handleDetailsDrawer}>
+    <Card onClick={handleDetailsDrawer} cheapest={cheapest} fastest={fastest}>
+      {cheapest && <div></div>}
+      {fastest && <div></div>}
       {offer.slices.map((slice, index) => (
         <FlightSlice key={index} slice={slice} />
       ))}
