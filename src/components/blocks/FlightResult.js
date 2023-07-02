@@ -5,7 +5,10 @@ import { useRouter } from "next/navigation";
 import { Block } from "baseui/block";
 import { ParagraphXSmall, HeadingXSmall } from "baseui/typography";
 import { Button, SIZE, SHAPE } from "baseui/button";
-import { Skeleton } from "baseui/skeleton";
+import { useStyletron } from "baseui";
+
+// React Grid System
+import { Container, Row, Col } from "react-grid-system";
 
 // Primitives
 import { Card } from "../primitives/card";
@@ -30,6 +33,8 @@ import {
 } from "../utils/helpers/currencyUtils";
 
 export default function FlightResult({ offer, cheapest, fastest }) {
+  // Base Web
+  const [css, $theme] = useStyletron();
   // Provider Functions
   const { openModal, closeModal } = useCondor();
 
@@ -68,27 +73,61 @@ export default function FlightResult({ offer, cheapest, fastest }) {
       {offer.slices.map((slice, index) => (
         <FlightSlice key={index} slice={slice} />
       ))}
-      <Block display="flex" alignItems="center">
+      {/*<Container style={{ padding: 0 }}>
         <Block
-          as="img"
-          src={offer.owner.logo_symbol_url}
-          alt="Image"
-          width="22px"
-          height="22px"
-        />
-        <ParagraphXSmall
+          display="flex"
+          alignItems="center"
+          justifyContent="center"
           overrides={{
             Block: {
-              style: ({ $theme }) => ({
-                margin: 0,
-                marginLeft: $theme.sizing.scale300,
-              }),
+              style: {
+                display: "flex",
+                alignItems: "center",
+                justifyContent: "center",
+              },
             },
           }}
         >
-          {offer.owner.name}
-        </ParagraphXSmall>
-      </Block>
+          <Block
+            width="26px"
+            height="26px"
+            overrides={{
+              Block: {
+                style: ({ $theme }) => ({
+                  borderRadius: "50%",
+                  backgroundColor: $theme.colors.primary50,
+                  marginLeft: "-30px",
+                }),
+              },
+            }}
+          />
+          <Block
+            flex="1"
+            overrides={{
+              Block: {
+                style: ({ $theme }) => ({
+                  height: "1px",
+                  borderTop: `4px dashed ${$theme.colors.primary50}`,
+                }),
+              },
+            }}
+          />
+          <Block
+            width="26px"
+            height="26px"
+            overrides={{
+              Block: {
+                style: ({ $theme }) => ({
+                  borderRadius: "50%",
+                  backgroundColor: $theme.colors.primary50,
+                  marginRight: "-30px",
+                }),
+              },
+            }}
+          />
+        </Block>
+          </Container>*/}
+
       <Block
         overrides={{
           Block: {
@@ -106,7 +145,7 @@ export default function FlightResult({ offer, cheapest, fastest }) {
             overrides={{
               Block: {
                 style: ({ $theme }) => ({
-                  marginTop: $theme.sizing.scale700,
+                  marginTop: $theme.sizing.scale100,
                   marginBottom: 0,
                   fontWeight: "bold",
                 }),
@@ -140,7 +179,7 @@ export default function FlightResult({ offer, cheapest, fastest }) {
           overrides={{
             BaseButton: {
               style: ({ $theme }) => ({
-                marginTop: $theme.sizing.scale300,
+                marginTop: 0,
                 marginBottom: 0,
               }),
             },

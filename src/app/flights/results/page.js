@@ -3,10 +3,24 @@
 import React, { useEffect, useState } from "react";
 
 // Base Web
+import { Grid, Cell } from "baseui/layout-grid";
 import { Block } from "baseui/block";
-import { HeadingXSmall } from "baseui/typography";
+import {
+  HeadingXSmall,
+  LabelSmall,
+  LabelMedium,
+  LabelLarge,
+  ParagraphXSmall,
+} from "baseui/typography";
+import { ButtonGroup } from "baseui/button-group";
 import { Button, KIND, SIZE } from "baseui/button";
 import { useStyletron } from "baseui";
+
+// Primitives
+import { Card } from "@/components/primitives/card";
+
+// React Grid System
+import { Container, Row, Col } from "react-grid-system";
 
 // Components
 import FlightResult from "@/components/blocks/FlightResult";
@@ -35,6 +49,9 @@ import { formatDatetoDateMonth } from "../../../components/utils/helpers/dateUti
 
 // API Fetch
 import { fetchFlightOffers } from "../../../services/flights/duffelApi";
+
+// Sorting and filtering
+import { orderBy } from "lodash";
 
 function getDurationInMinutes(duration) {
   const regex = /P(\d+D)?T?(\d+H)?(\d+M)?/;
@@ -133,6 +150,7 @@ export default function FlightResults() {
   };
 
   // Sort Data
+  // Sort Data
   const filteredData = data
     .filter((offer) => offer.owner.iata_code !== "ZZ") // Filter out results from owner with iata_code ZZ
     .filter((offer, index, array) => {
@@ -149,24 +167,9 @@ export default function FlightResults() {
     (a, b) => getTotalDuration(a.slices) - getTotalDuration(b.slices)
   );
 
-  const cheapest = sortedByPrice[0];
-  const fastest = sortedByDuration[0];
-
-  // Sort by Cheapest
-  const sortByCheapest = () => {
-    const sortedData = [...filteredData].sort(
-      (a, b) => a.total_amount - b.total_amount
-    );
-    setData(sortedData);
-  };
-
-  // Sort by Fastest
-  const sortByFastest = () => {
-    const sortedData = [...filteredData].sort(
-      (a, b) => getTotalDuration(a.slices) - getTotalDuration(b.slices)
-    );
-    setData(sortedData);
-  };
+  // Determine the Cheapest and Fastest
+  const cheapest = orderBy(data, "total_amount")[0];
+  const fastest = orderBy(data, (offer) => getTotalDuration(offer.slices))[0];
 
   // Handlers
   const handleEditDrawer = () => {
@@ -205,175 +208,309 @@ export default function FlightResults() {
 
   return (
     <main>
-      <Block
-        overrides={{
-          Block: {
-            style: ({ $theme }) => ({
-              display: "flex",
-              alignItems: "center",
-            }),
-          },
-        }}
-      >
-        <HeadingXSmall
-          overrides={{
-            Block: {
-              style: ({ $theme }) => ({
-                display: "flex",
-                alignItems: "center",
-                marginTop: 0,
-                marginBottom: 0,
-                marginLeft: $theme.sizing.scale200,
-              }),
-            },
-          }}
-        >
-          {origin.name}
-          <Block
-            overrides={{
-              Block: {
-                style: ({ $theme }) => ({
-                  marginLeft: $theme.sizing.scale300,
-                  marginRight: $theme.sizing.scale300,
-                  display: "flex",
-                  alignItems: "center",
-                }),
-              },
-            }}
-          >
-            {destination ? (
-              <IconArrowsDiff size={20} />
-            ) : (
-              <IconArrowRight size={20} />
-            )}
-          </Block>
-          {destination.name}
-        </HeadingXSmall>
-        <Block
-          overrides={{
-            Block: {
-              style: ({ $theme }) => ({
-                marginLeft: $theme.sizing.scale300,
-              }),
-            },
-          }}
-        >
-          <IconEdit
-            size={20}
-            color={theme.colors.primary500}
-            onClick={handleEditDrawer}
-          />
-        </Block>
-      </Block>
-      <Block
-        size={SIZE.compact}
-        kind={KIND.secondary}
-        overrides={{
-          Block: {
-            style: ({ $theme }) => ({
-              display: "flex",
-              overflowX: "scroll",
-              flexWrap: "nowrap",
-              marginTop: $theme.sizing.scale200,
-              marginLeft: `-${$theme.sizing.scale600}`,
-              marginRight: `-${$theme.sizing.scale600}`,
-              paddingLeft: $theme.sizing.scale700,
-              paddingRight: $theme.sizing.scale600,
-              WebkitOverflowScrolling: "touch",
-              "&::-webkit-scrollbar": {
-                display: "none",
-              },
-              // Hide scrollbar on Windows devices
-              "@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none)":
-                {
-                  "&::-webkit-scrollbar": {
-                    display: "none",
-                  },
-                  "-ms-overflow-style": "none",
-                  scrollbarWidth: "none",
+      <Container style={{ padding: 0 }}>
+        <Row>
+          <Col lg={7}>
+            <Block
+              overrides={{
+                Block: {
+                  style: ({ $theme }) => ({
+                    display: "flex",
+                    alignItems: "center",
+                  }),
                 },
-            }),
-          },
-        }}
-      >
-        <Button
-          size={SIZE.compact}
-          kind={KIND.secondary}
-          endEnhancer={() => <IconChevronDown size={16} />}
-          overrides={{
-            BaseButton: {
-              style: ({ $theme }) => ({
-                flex: "0 0 auto",
-                whiteSpace: "nowrap",
-                border: `1px solid ${$theme.colors.primary200}`,
-                marginRight: $theme.sizing.scale200,
-              }),
-            },
-          }}
-          onClick={handleCalendarDrawer}
-        >{`${formatDatetoDateMonth(outbound)}${
-          inbound ? ` - ${formatDatetoDateMonth(inbound)}` : ""
-        }`}</Button>
-        <Button
-          size={SIZE.compact}
-          kind={KIND.secondary}
-          endEnhancer={() => <IconChevronDown size={16} />}
-          overrides={{
-            BaseButton: {
-              style: ({ $theme }) => ({
-                flex: "0 0 auto",
-                whiteSpace: "nowrap",
-                border: `1px solid ${$theme.colors.primary200}`,
-                marginRight: $theme.sizing.scale200,
-              }),
-            },
-          }}
-          onClick={handlePassengerDrawer}
-        >{`${adults + children + infants} passenger${
-          adults + children + infants > 1 ? "s" : ""
-        }`}</Button>
-        <Button
-          size={SIZE.mini}
-          kind={KIND.secondary}
-          endEnhancer={() => <IconChevronDown size={16} />}
-          overrides={{
-            BaseButton: {
-              style: ({ $theme }) => ({
-                flex: "0 0 auto",
-                whiteSpace: "nowrap",
-                border: `1px solid ${$theme.colors.primary200}`,
-                marginRight: $theme.sizing.scale200,
-              }),
-            },
-          }}
-        >
-          {travelClass}
-        </Button>
-      </Block>
-      {/*<Button size={SIZE.mini} onClick={sortByCheapest}>
+              }}
+            >
+              <HeadingXSmall
+                overrides={{
+                  Block: {
+                    style: ({ $theme }) => ({
+                      display: "flex",
+                      alignItems: "center",
+                      marginTop: 0,
+                      marginBottom: 0,
+                      marginLeft: $theme.sizing.scale200,
+                    }),
+                  },
+                }}
+              >
+                {origin.name}
+                <Block
+                  overrides={{
+                    Block: {
+                      style: ({ $theme }) => ({
+                        marginLeft: $theme.sizing.scale300,
+                        marginRight: $theme.sizing.scale300,
+                        display: "flex",
+                        alignItems: "center",
+                      }),
+                    },
+                  }}
+                >
+                  {destination ? (
+                    <IconArrowsDiff size={20} />
+                  ) : (
+                    <IconArrowRight size={20} />
+                  )}
+                </Block>
+                {destination.name}
+              </HeadingXSmall>
+              <Block
+                overrides={{
+                  Block: {
+                    style: ({ $theme }) => ({
+                      marginLeft: $theme.sizing.scale300,
+                    }),
+                  },
+                }}
+              >
+                <IconEdit
+                  size={20}
+                  color={theme.colors.primary500}
+                  onClick={handleEditDrawer}
+                />
+              </Block>
+            </Block>
+            <Block
+              size={SIZE.compact}
+              kind={KIND.secondary}
+              overrides={{
+                Block: {
+                  style: ({ $theme }) => ({
+                    display: "flex",
+                    overflowX: "scroll",
+                    flexWrap: "nowrap",
+                    marginTop: $theme.sizing.scale200,
+                    marginLeft: `-${$theme.sizing.scale600}`,
+                    marginRight: `-${$theme.sizing.scale600}`,
+                    paddingLeft: $theme.sizing.scale700,
+                    paddingRight: $theme.sizing.scale600,
+                    WebkitOverflowScrolling: "touch",
+                    "&::-webkit-scrollbar": {
+                      display: "none",
+                    },
+                    // Hide scrollbar on Windows devices
+                    "@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none)":
+                      {
+                        "&::-webkit-scrollbar": {
+                          display: "none",
+                        },
+                        "-ms-overflow-style": "none",
+                        scrollbarWidth: "none",
+                      },
+                  }),
+                },
+              }}
+            >
+              <Button
+                size={SIZE.compact}
+                kind={KIND.secondary}
+                endEnhancer={() => <IconChevronDown size={16} />}
+                overrides={{
+                  BaseButton: {
+                    style: ({ $theme }) => ({
+                      flex: "0 0 auto",
+                      whiteSpace: "nowrap",
+                      border: `1px solid ${$theme.colors.primary200}`,
+                      marginRight: $theme.sizing.scale200,
+                    }),
+                  },
+                }}
+                onClick={handleCalendarDrawer}
+              >{`${formatDatetoDateMonth(outbound)}${
+                inbound ? ` - ${formatDatetoDateMonth(inbound)}` : ""
+              }`}</Button>
+              <Button
+                size={SIZE.compact}
+                kind={KIND.secondary}
+                endEnhancer={() => <IconChevronDown size={16} />}
+                overrides={{
+                  BaseButton: {
+                    style: ({ $theme }) => ({
+                      flex: "0 0 auto",
+                      whiteSpace: "nowrap",
+                      border: `1px solid ${$theme.colors.primary200}`,
+                      marginRight: $theme.sizing.scale200,
+                    }),
+                  },
+                }}
+                onClick={handlePassengerDrawer}
+              >{`${adults + children + infants} passenger${
+                adults + children + infants > 1 ? "s" : ""
+              }`}</Button>
+              <Button
+                size={SIZE.compact}
+                kind={KIND.secondary}
+                endEnhancer={() => <IconChevronDown size={16} />}
+                overrides={{
+                  BaseButton: {
+                    style: ({ $theme }) => ({
+                      flex: "0 0 auto",
+                      whiteSpace: "nowrap",
+                      border: `1px solid ${$theme.colors.primary200}`,
+                      marginRight: $theme.sizing.scale200,
+                    }),
+                  },
+                }}
+              >
+                {travelClass}
+              </Button>
+            </Block>
+            {/*<Button size={SIZE.mini} onClick={sortByCheapest}>
         Sort by Cheapest
       </Button>
       <Button size={SIZE.mini} onClick={sortByFastest}>
         Sort by Fastest
         </Button>*/}
-      {isLoading && (
-        <Block>
-          <FlightResultSkeleton />
-          <FlightResultSkeleton />
-          <FlightResultSkeleton />
-          <FlightResultSkeleton />
-        </Block>
-      )}
-      {filteredData.map((offer, index) => {
-        return (
-          <FlightResult
-            key={index}
-            offer={offer}
-            cheapest={offer === cheapest}
-            fastest={offer === fastest}
-          />
-        );
-      })}
+            <Card padding={`${theme.sizing.scale200}`}>
+              <ButtonGroup
+                kind={KIND.tertiary}
+                overrides={{
+                  Root: {
+                    style: ({ $theme }) => ({
+                      display: "flex",
+                      alignItems: "center",
+                      width: "100%",
+                    }),
+                  },
+                }}
+              >
+                <Button
+                  active
+                  overrides={{
+                    ButtonBase: {
+                      style: ({ $theme }) => ({
+                        borderBottom: `1px solid ${$theme.colors.primary500}`,
+                        width: "calc(100% / 3)",
+                      }),
+                    },
+                  }}
+                >
+                  <Block
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="start"
+                  >
+                    <LabelSmall
+                      overrides={{
+                        Block: {
+                          style: ({ $theme }) => ({
+                            fontWeight: "bold",
+                          }),
+                        },
+                      }}
+                    >
+                      Best
+                    </LabelSmall>
+                    <ParagraphXSmall
+                      overrides={{
+                        Block: {
+                          style: ({ $theme }) => ({
+                            marginTop: $theme.sizing.scale100,
+                            marginBottom: 0,
+                          }),
+                        },
+                      }}
+                    ></ParagraphXSmall>
+                  </Block>
+                </Button>
+                <Button
+                  overrides={{
+                    ButtonBase: {
+                      style: ({ $theme }) => ({
+                        borderBottom: `1px solid ${$theme.colors.primary500}`,
+                        width: "calc(100% / 3)",
+                      }),
+                    },
+                  }}
+                >
+                  <Block
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="start"
+                  >
+                    <LabelSmall
+                      overrides={{
+                        Block: {
+                          style: ({ $theme }) => ({
+                            fontWeight: "bold",
+                          }),
+                        },
+                      }}
+                    >
+                      Lowest fare
+                    </LabelSmall>
+                    <ParagraphXSmall
+                      overrides={{
+                        Block: {
+                          style: ({ $theme }) => ({
+                            marginTop: $theme.sizing.scale100,
+                            marginBottom: 0,
+                          }),
+                        },
+                      }}
+                    ></ParagraphXSmall>
+                  </Block>
+                </Button>
+                <Button
+                  overrides={{
+                    ButtonBase: {
+                      style: ({ $theme }) => ({
+                        borderBottom: `1px solid ${$theme.colors.primary500}`,
+                        width: "calc(100% / 3)",
+                      }),
+                    },
+                  }}
+                >
+                  <Block
+                    display="flex"
+                    flexDirection="column"
+                    alignItems="start"
+                  >
+                    <LabelSmall
+                      overrides={{
+                        Block: {
+                          style: ({ $theme }) => ({
+                            fontWeight: "bold",
+                          }),
+                        },
+                      }}
+                    >
+                      Fastest
+                    </LabelSmall>
+                    <ParagraphXSmall
+                      overrides={{
+                        Block: {
+                          style: ({ $theme }) => ({
+                            marginTop: $theme.sizing.scale100,
+                            marginBottom: 0,
+                          }),
+                        },
+                      }}
+                    ></ParagraphXSmall>
+                  </Block>
+                </Button>
+              </ButtonGroup>
+            </Card>
+            {isLoading && (
+              <Block>
+                <FlightResultSkeleton />
+                <FlightResultSkeleton />
+                <FlightResultSkeleton />
+                <FlightResultSkeleton />
+              </Block>
+            )}
+            {data.map((offer, index) => (
+              <FlightResult
+                key={index}
+                offer={offer}
+                cheapest={offer === cheapest}
+                fastest={offer === fastest}
+              />
+            ))}
+          </Col>
+        </Row>
+      </Container>
     </main>
   );
 }

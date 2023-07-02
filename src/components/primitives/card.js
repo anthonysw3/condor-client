@@ -3,7 +3,7 @@ import React from "react";
 // Base Web
 import { Block } from "baseui/block";
 
-export function Card({ children }) {
+export function Card({ children, padding }) {
   return (
     <Block
       overrides={{
@@ -11,7 +11,7 @@ export function Card({ children }) {
           style: ({ $theme }) => ({
             marginTop: $theme.sizing.scale700,
             marginBottom: $theme.sizing.scale700,
-            padding: `${$theme.sizing.scale700}`,
+            padding: padding ? padding : `${$theme.sizing.scale700}`,
             backgroundColor: `${$theme.colors.backgroundPrimary}`,
             overflow: "hidden",
             borderRadius: $theme.borders.radius500,

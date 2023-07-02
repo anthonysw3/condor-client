@@ -24,8 +24,10 @@ export const fetchFlightOffers = async ({
     passengerArray.push({ age: 1 });
   }
 
+  console.log(passengerArray);
+
   try {
-    const response = await fetch("http://46.101.84.178:5000/api/search", {
+    const response = await fetch("http://localhost:5000/api/search", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

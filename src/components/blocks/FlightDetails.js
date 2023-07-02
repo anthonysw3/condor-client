@@ -323,7 +323,7 @@ function ExpandableBlock({ slice }) {
             },
           }}
         >
-          <Button kind={KIND.tertiary} size={SIZE.mini} shape={SHAPE.circle}>
+          <Button kind={KIND.secondary} size={SIZE.mini} shape={SHAPE.circle}>
             {isOpen ? (
               <IconChevronUp size={16} />
             ) : (
