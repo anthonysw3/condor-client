@@ -27,7 +27,7 @@ export const fetchFlightOffers = async ({
   console.log(passengerArray);
 
   try {
-    const response = await fetch("http://localhost:5000/api/search", {
+    const response = await fetch("http://192.168.0.227:5000/api/search", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

@@ -1,11 +1,13 @@
 import React, { useState, useEffect, useRef } from "react";
+
+// Base Web UI
 import { Block } from "baseui/block";
-import { Button } from "baseui/button";
 import { LabelMedium } from "baseui/typography";
-import { IconX, IconChevronRight } from "@tabler/icons-react";
+import { IconX } from "@tabler/icons-react";
 import { styled } from "baseui";
+
+// Framer Motion
 import { motion, AnimatePresence } from "framer-motion";
-import { ContentAnimationContainer } from "baseui/accordion/styled-components";
 
 const DrawerContainer = styled(Block, ({ $theme, $direction }) => ({
   position: "fixed",

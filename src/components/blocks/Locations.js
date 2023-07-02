@@ -32,7 +32,7 @@ const Locations = ({ onChange, isOpen }) => {
     // Debounce the search operation
     const delaySearch = setTimeout(() => {
       if (locationSearch.length >= 2) {
-        fetch(`http://localhost:5000/api/airports?q=${locationSearch}`)
+        fetch(`http://192.168.0.227:5000/api/airports?q=${locationSearch}`)
           .then((response) => response.json())
           .then((data) => setFilteredLoc(data));
       } else {

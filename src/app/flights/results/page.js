@@ -22,6 +22,9 @@ import { Card } from "@/components/primitives/card";
 // React Grid System
 import { Container, Row, Col } from "react-grid-system";
 
+// Framer Motion
+import { motion, AnimatePresence } from "framer-motion";
+
 // Components
 import FlightResult from "@/components/blocks/FlightResult";
 import FlightSearch from "@/components/blocks/FlightSearch";
@@ -51,18 +54,15 @@ import { formatDatetoDateMonth } from "../../../components/utils/helpers/dateUti
 import { fetchFlightOffers } from "../../../services/flights/duffelApi";
 
 // Sorting and filtering
-import { orderBy } from "lodash";
-
+// Convert duration string to minutes
 function getDurationInMinutes(duration) {
-  const regex = /P(\d+D)?T?(\d+H)?(\d+M)?/;
+  const regex = /P(?:([0-9]+)D)?T(?:([0-9]+)H)?(?:([0-9]+)M)?/;
   const match = duration.match(regex);
 
   if (match) {
-    let [, days, hours, minutes] = match;
-
-    days = days ? Number(days.slice(0, -1)) : 0;
-    hours = hours ? Number(hours.slice(0, -1)) : 0;
-    minutes = minutes ? Number(minutes.slice(0, -1)) : 0;
+    const days = match[1] ? Number(match[1]) : 0;
+    const hours = match[2] ? Number(match[2]) : 0;
+    const minutes = match[3] ? Number(match[3]) : 0;
 
     return days * 24 * 60 + hours * 60 + minutes;
   } else {
@@ -85,6 +85,7 @@ export default function FlightResults() {
   const [isLoading, setIsLoading] = useState(true); // API loading
   const [after, setAfter] = useState(null); // API pagination
   const [data, setData] = useState([]); // API response
+  const [filteredData, setFilteredData] = useState([]);
 
   // Store
   const {
@@ -115,7 +116,7 @@ export default function FlightResults() {
       setData((prevData) => [...prevData, ...offers]);
       setAfter(newAfter);
 
-      console.log(JSON.stringify(offers, null, 2));
+      console.log(offers);
 
       if (!newAfter) {
         setIsLoading(false);
@@ -149,27 +150,73 @@ export default function FlightResults() {
     await getFlightOffers();
   };
 
-  // Sort Data
-  // Sort Data
-  const filteredData = data
-    .filter((offer) => offer.owner.iata_code !== "ZZ") // Filter out results from owner with iata_code ZZ
-    .filter((offer, index, array) => {
-      const lowestPrice = array[0].total_amount; // Get the lowest price
-      const maxPrice = lowestPrice * 5; // Calculate the maximum allowed price (500% of the lowest price)
-      return offer.total_amount <= maxPrice; // Filter out offers with price exceeding the maximum
-    });
+  const [sortBy, setSortBy] = useState("best");
+  const [sortedData, setSortedData] = useState([]);
+  const [isSorting, setIsSorting] = useState(false);
 
-  // Determine the Cheapest and Fastest
-  const sortedByPrice = [...filteredData].sort(
-    (a, b) => a.total_amount - b.total_amount
-  );
-  const sortedByDuration = [...filteredData].sort(
-    (a, b) => getTotalDuration(a.slices) - getTotalDuration(b.slices)
-  );
+  // Processing Data
+  useEffect(() => {
+    const processedData = data.filter(
+      (offer) => offer.owner.iata_code !== "ZZ"
+    );
+    setFilteredData(processedData);
+    console.log("Filtered Data: ", processedData);
+  }, [data]);
 
-  // Determine the Cheapest and Fastest
-  const cheapest = orderBy(data, "total_amount")[0];
-  const fastest = orderBy(data, (offer) => getTotalDuration(offer.slices))[0];
+  useEffect(() => {
+    let newSortedData;
+
+    if (sortBy === "best") {
+      newSortedData = [...filteredData].sort((a, b) => {
+        const stopsA = a.slices.reduce(
+          (acc, val) => acc + val.segments.length,
+          0
+        );
+        const stopsB = b.slices.reduce(
+          (acc, val) => acc + val.segments.length,
+          0
+        );
+
+        if (stopsA !== stopsB) {
+          return stopsA - stopsB;
+        } else {
+          return a.total_amount - b.total_amount;
+        }
+      });
+      console.log("Sorted by best: ", newSortedData);
+    } else if (sortBy === "lowestFare") {
+      newSortedData = [...filteredData].sort(
+        (a, b) => a.total_amount - b.total_amount
+      );
+      console.log("Sorted by lowestFare: ", newSortedData);
+    } else if (sortBy === "fastest") {
+      newSortedData = [...filteredData].sort((a, b) => {
+        const durationA = a.slices.reduce(
+          (acc, val) => acc + getDurationInMinutes(val.duration),
+          0
+        );
+        const durationB = b.slices.reduce(
+          (acc, val) => acc + getDurationInMinutes(val.duration),
+          0
+        );
+        return durationA - durationB;
+      });
+      console.log("Sorted by fastest: ", newSortedData);
+    } else {
+      newSortedData = filteredData;
+    }
+
+    setSortedData(newSortedData);
+    setIsSorting(false);
+  }, [sortBy, filteredData]);
+
+  // Update this in your button click handlers
+  const handleSortBy = (value) => {
+    setIsSorting(true);
+    setSortBy(value);
+  };
+
+  // Use `sortedData` instead of `filteredData` to render your list
 
   // Handlers
   const handleEditDrawer = () => {
@@ -376,7 +423,8 @@ export default function FlightResults() {
                 }}
               >
                 <Button
-                  active
+                  active={sortBy === "best"}
+                  onClick={() => handleSortBy("best")}
                   overrides={{
                     ButtonBase: {
                       style: ({ $theme }) => ({
@@ -415,6 +463,8 @@ export default function FlightResults() {
                   </Block>
                 </Button>
                 <Button
+                  active={sortBy === "lowestFare"}
+                  onClick={() => handleSortBy("lowestFare")}
                   overrides={{
                     ButtonBase: {
                       style: ({ $theme }) => ({
@@ -453,6 +503,8 @@ export default function FlightResults() {
                   </Block>
                 </Button>
                 <Button
+                  active={sortBy === "fastest"}
+                  onClick={() => handleSortBy("fastest")}
                   overrides={{
                     ButtonBase: {
                       style: ({ $theme }) => ({
@@ -500,14 +552,28 @@ export default function FlightResults() {
                 <FlightResultSkeleton />
               </Block>
             )}
-            {data.map((offer, index) => (
-              <FlightResult
-                key={index}
-                offer={offer}
-                cheapest={offer === cheapest}
-                fastest={offer === fastest}
-              />
-            ))}
+            {isSorting ? (
+              <Block>
+                <FlightResultSkeleton />
+                <FlightResultSkeleton />
+                <FlightResultSkeleton />
+                <FlightResultSkeleton />
+              </Block>
+            ) : (
+              <AnimatePresence>
+                {sortedData.map((offer, index) => (
+                  <motion.div
+                    key={index}
+                    initial={{ opacity: 0, y: 20 }} // Initial animation state
+                    animate={{ opacity: 1, y: 0 }} // Animation when appearing
+                    exit={{ opacity: 0, y: 20 }} // Animation when exiting
+                    transition={{ duration: 0.4, delay: index * 0.2 }} // Animation duration and delay
+                  >
+                    <FlightResult key={index} offer={offer} />
+                  </motion.div>
+                ))}
+              </AnimatePresence>
+            )}
           </Col>
         </Row>
       </Container>
