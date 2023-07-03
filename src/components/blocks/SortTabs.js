@@ -36,50 +36,52 @@ export default function SortTabs({
 }) {
   const [css, theme] = useStyletron();
   return (
-    <Card padding={`${theme.sizing.scale200}`}>
-      <Block
-        size={SIZE.compact}
-        kind={KIND.secondary}
-        overrides={{
-          Block: {
-            style: ({ $theme }) => ({
-              display: "flex",
-              overflowX: "scroll",
-              flexWrap: "nowrap",
-              marginLeft: `-${$theme.sizing.scale600}`,
-              marginRight: `-${$theme.sizing.scale600}`,
-              paddingLeft: $theme.sizing.scale700,
-              paddingRight: $theme.sizing.scale600,
-              WebkitOverflowScrolling: "touch",
-              "&::-webkit-scrollbar": {
-                display: "none",
-              },
-              // Hide scrollbar on Windows devices
-              "@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none)":
-                {
-                  "&::-webkit-scrollbar": {
-                    display: "none",
-                  },
-                  "-ms-overflow-style": "none",
-                  scrollbarWidth: "none",
+    <Block
+      size={SIZE.compact}
+      kind={KIND.secondary}
+      overrides={{
+        Block: {
+          style: ({ $theme }) => ({
+            marginTop: $theme.sizing.scale700,
+            marginBottom: $theme.sizing.scale700,
+            padding: `${$theme.sizing.scale200}`,
+            backgroundColor: `${$theme.colors.backgroundPrimary}`,
+            borderRadius: $theme.borders.radius500,
+            boxShadow: "0 6px 12px -6px rgba(0, 0, 0, 0.1)",
+            display: "flex",
+            overflowX: "scroll",
+            flexWrap: "nowrap",
+            paddingLeft: $theme.sizing.scale700,
+            paddingRight: $theme.sizing.scale600,
+            WebkitOverflowScrolling: "touch",
+            "&::-webkit-scrollbar": {
+              display: "none",
+            },
+            // Hide scrollbar on Windows devices
+            "@media screen and (-ms-high-contrast: active), (-ms-high-contrast: none)":
+              {
+                "&::-webkit-scrollbar": {
+                  display: "none",
                 },
-            }),
-          },
-        }}
-      >
-        {["best", "lowestFare", "fastest"].map((sortOption) => (
-          <SortButton
-            key={sortOption}
-            sortOption={sortOption}
-            activeSort={sortBy}
-            isLoading={isLoading}
-            isSorting={isSorting}
-            sortedData={sortedData}
-            handleSortBy={handleSortBy}
-          />
-        ))}
-      </Block>
-    </Card>
+                "-ms-overflow-style": "none",
+                scrollbarWidth: "none",
+              },
+          }),
+        },
+      }}
+    >
+      {["best", "lowestFare", "fastest"].map((sortOption) => (
+        <SortButton
+          key={sortOption}
+          sortOption={sortOption}
+          activeSort={sortBy}
+          isLoading={isLoading}
+          isSorting={isSorting}
+          sortedData={sortedData}
+          handleSortBy={handleSortBy}
+        />
+      ))}
+    </Block>
   );
 }
 
@@ -115,8 +117,34 @@ const LoadingSkeleton = () => (
 );
 
 const PriceDurationBlock = ({ sortOption, sortedData }) => {
-  const bestIndex = sortOption === "best" ? 0 : sortedData.length - 1;
-
+  let bestIndex;
+  switch (sortOption) {
+    case "best":
+      bestIndex = 0;
+      break;
+    case "lowestFare":
+      bestIndex = sortedData.reduce(
+        (minIndex, current, currentIndex, array) => {
+          const currentFare = array[minIndex]?.total_amount;
+          const nextFare = current?.total_amount;
+          return nextFare < currentFare ? currentIndex : minIndex;
+        },
+        0
+      );
+      break;
+    case "fastest":
+      bestIndex = sortedData.reduce(
+        (minIndex, current, currentIndex, array) => {
+          const currentDuration = array[minIndex]?.slices[0]?.duration;
+          const nextDuration = current?.slices[0]?.duration;
+          return nextDuration < currentDuration ? currentIndex : minIndex;
+        },
+        0
+      );
+      break;
+    default:
+      bestIndex = 0;
+  }
   return (
     <Block>
       <ParagraphMedium
@@ -154,6 +182,19 @@ const PriceDurationBlock = ({ sortOption, sortedData }) => {
   );
 };
 
+const getTitle = (sortOption) => {
+  switch (sortOption) {
+    case "best":
+      return "Best";
+    case "lowestFare":
+      return "Lowest fare";
+    case "fastest":
+      return "Fastest";
+    default:
+      return "";
+  }
+};
+
 const SortButton = ({
   sortOption,
   activeSort,
@@ -162,36 +203,55 @@ const SortButton = ({
   sortedData,
   handleSortBy,
 }) => (
-  <Button
-    kind={KIND.tertiary}
-    active={activeSort === sortOption}
+  <Block
     onClick={() => handleSortBy(sortOption)}
     overrides={{
-      ButtonBase: {
+      Block: {
         style: ({ $theme }) => ({
-          borderBottom: `1px solid ${$theme.colors.primary500}`,
-          width: "calc(100% / 3)",
+          cursor: "pointer",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "start",
+          padding: $theme.sizing.scale500,
+          marginRight: $theme.sizing.scale200,
+          backgroundColor:
+            activeSort === sortOption ? $theme.colors.primary50 : "transparent",
+          ":hover": {
+            backgroundColor: $theme.colors.primary50,
+          },
+          minWidth: "33.3333%",
+          borderRadius: $theme.borders.radius500,
+          "::after":
+            activeSort === sortOption
+              ? {
+                  content: '""',
+                  position: "absolute",
+                  left: 0,
+                  right: 0,
+                  bottom: 0,
+                  height: "3px",
+                  backgroundColor: $theme.colors.primary,
+                }
+              : {},
         }),
       },
     }}
   >
-    <Block display="flex" flexDirection="column" alignItems="start">
-      <LabelSmall
-        overrides={{
-          Block: {
-            style: ({ $theme }) => ({
-              fontWeight: "bold",
-            }),
-          },
-        }}
-      >
-        {sortTitleMap[sortOption]}
-      </LabelSmall>
-      {isLoading || isSorting ? (
-        <LoadingSkeleton />
-      ) : (
-        <PriceDurationBlock sortOption={sortOption} sortedData={sortedData} />
-      )}
-    </Block>
-  </Button>
+    <LabelSmall
+      overrides={{
+        Block: {
+          style: ({ $theme }) => ({
+            fontWeight: "bold",
+          }),
+        },
+      }}
+    >
+      {getTitle(sortOption)}
+    </LabelSmall>
+    {isLoading || isSorting ? (
+      <LoadingSkeleton />
+    ) : (
+      <PriceDurationBlock sortOption={sortOption} sortedData={sortedData} />
+    )}
+  </Block>
 );
