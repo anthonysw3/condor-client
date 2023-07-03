@@ -53,6 +53,8 @@ export default function Calendar() {
     dayjs(inbound),
   ]);
 
+  const [nextSelection, setNextSelection] = useState("outbound");
+
   const handleDateSelect = (date) => {
     const isPast = date.isBefore(currentDate, "day");
     const isToday = date.isSame(currentDate, "day");
@@ -60,52 +62,34 @@ export default function Calendar() {
       return; // Do not update selection for past or today's date
     }
 
-    const isAlreadySelected = selectedDates.some((selectedDate) =>
-      selectedDate.isSame(date, "day")
-    );
-
-    if (isAlreadySelected) {
-      setSelectedDates((prevSelectedDates) => {
-        const newSelectedDates = prevSelectedDates.filter(
-          (selectedDate) => !selectedDate.isSame(date, "day")
-        );
-
-        // If only one date is left after filtering, set inbound in redux to empty
-        if (newSelectedDates.length === 1) {
-          dispatch(
-            setDates({
-              outbound: newSelectedDates[0].format("YYYY-MM-DD"),
-              inbound: "",
-            })
-          );
-        }
-        return newSelectedDates;
-      });
+    if (nextSelection === "outbound") {
+      setSelectedDates([date, selectedDates[1]]);
+      dispatch(
+        setDates({
+          outbound: date.format("YYYY-MM-DD"),
+          inbound: selectedDates[1]?.format("YYYY-MM-DD"),
+        })
+      );
+      setNextSelection("inbound");
     } else {
-      setSelectedDates((prevSelectedDates) => {
-        let newSelectedDates =
-          prevSelectedDates.length >= 2
-            ? [prevSelectedDates[1], date]
-            : [...prevSelectedDates, date];
-
-        // If we have two dates, sort them by proximity to current date.
-        // The date closest to now will be the outbound date.
-        if (newSelectedDates.length === 2) {
-          newSelectedDates = newSelectedDates.sort(
-            (a, b) => a.diff(currentDate) - b.diff(currentDate)
-          );
-        }
-
-        // Dispatch an action to update the dates in your Redux store.
+      if (date.isAfter(selectedDates[0])) {
+        setSelectedDates([selectedDates[0], date]);
         dispatch(
           setDates({
-            outbound: newSelectedDates[0].format("YYYY-MM-DD"),
-            inbound: newSelectedDates[1]?.format("YYYY-MM-DD"),
+            outbound: selectedDates[0].format("YYYY-MM-DD"),
+            inbound: date.format("YYYY-MM-DD"),
           })
         );
-
-        return newSelectedDates;
-      });
+      } else {
+        setSelectedDates([date, selectedDates[0]]);
+        dispatch(
+          setDates({
+            outbound: date.format("YYYY-MM-DD"),
+            inbound: selectedDates[0].format("YYYY-MM-DD"),
+          })
+        );
+      }
+      setNextSelection("outbound");
     }
   };
 
@@ -169,6 +153,7 @@ export default function Calendar() {
 
         const day = (
           <FlexGridItem
+            id={date.format("YYYY-MM-DD")}
             key={j}
             flexBasis="0"
             flexGrow={1}
@@ -227,7 +212,7 @@ export default function Calendar() {
                     ":hover": {
                       backgroundColor: isPast
                         ? "inherit"
-                        : $theme.colors.primaryB,
+                        : $theme.colors.primary,
                       boxShadow: isPast
                         ? "none"
                         : `inset 0 0 0 1px ${$theme.colors.primary}`,
@@ -241,12 +226,22 @@ export default function Calendar() {
                 overrides={{
                   Block: {
                     style: ({ $theme }) => ({
+                      display: "flex",
+                      alignItems: "center",
+                      justifyContent: "center",
+                      width: "100%",
+                      height: "100%",
                       fontWeight: isToday ? "bold" : "normal",
                       color: isSelected
                         ? $theme.colors.primaryB
                         : isPast
                         ? $theme.colors.primary300
                         : $theme.colors.primary,
+                      ":hover": {
+                        color: isSelected
+                          ? $theme.colors.primaryB
+                          : $theme.colors.primaryB,
+                      },
                     }),
                   },
                 }}
@@ -323,6 +318,24 @@ export default function Calendar() {
     return () => {
       window.removeEventListener("scroll", handleScroll);
     };
+  }, []);
+
+  useEffect(() => {
+    // Get the first selected date, default to today if none selected
+    const firstSelectedDate = selectedDates[0] || currentDate;
+
+    // Get the HTML element with the id of the first selected date
+    const firstSelectedDateElement = document.getElementById(
+      firstSelectedDate.format("YYYY-MM-DD")
+    );
+
+    // If the element exists, scroll to it
+    if (firstSelectedDateElement) {
+      firstSelectedDateElement.scrollIntoView({
+        behavior: "smooth",
+        block: "center",
+      });
+    }
   }, []);
 
   return (

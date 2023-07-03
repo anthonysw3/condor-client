@@ -120,3 +120,62 @@ export function FlightResultSkeleton() {
     </Card>
   );
 }
+
+export function FlightSummarySkeleton() {
+  return (
+    <Card>
+      <Skeleton
+        rows={2}
+        width="200px"
+        overrides={{
+          Row: {
+            style: {
+              height: "20px",
+              marginBottom: "10px",
+            },
+          },
+        }}
+        animation
+      />
+      <Skeleton
+        width="100%"
+        height="40px"
+        overrides={{
+          Root: {
+            style: ({ $theme }) => ({
+              marginTop: $theme.sizing.scale900,
+              marginBottom: $theme.sizing.scale900,
+            }),
+          },
+        }}
+        animation
+      />
+      <Skeleton
+        width="100%"
+        height="40px"
+        overrides={{
+          Root: {
+            style: ({ $theme }) => ({
+              marginTop: $theme.sizing.scale900,
+              marginBottom: $theme.sizing.scale900,
+            }),
+          },
+        }}
+        animation
+      />
+      <Skeleton
+        rows={2}
+        width="200px"
+        overrides={{
+          Row: {
+            style: {
+              height: "20px",
+              marginBottom: "10px",
+            },
+          },
+        }}
+        animation
+      />
+    </Card>
+  );
+}

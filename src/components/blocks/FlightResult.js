@@ -24,7 +24,8 @@ import { IconChevronRight } from "@tabler/icons-react";
 import { useCondor } from "../utils/providers/CondorProvider";
 
 // Store
-import { useSelector } from "react-redux";
+import { useSelector, useDispatch } from "react-redux";
+import { setFlightOfferId } from "../utils/store/slices/flightOfferSlice";
 
 // Helpers
 import {
@@ -57,8 +58,12 @@ export default function FlightResult({ offer, cheapest, fastest }) {
   const roundedAmount = Math.ceil(amountPerPassenger);
   // Determine if the offer is the cheapest
 
+  const dispatch = useDispatch();
+
   // Handlers
   const handleDetailsDrawer = () => {
+    console.log("Offer ID:", offer.id); // <-- Log the offer id before dispatching
+    dispatch(setFlightOfferId(offer.id));
     const title = `Trip to ${destination.name}`;
     const content = <FlightDetails offer={offer} />;
     const footer = <Footer />;

@@ -59,3 +59,29 @@ export const fetchFlightOffers = async ({
     throw error;
   }
 };
+
+// Get single flight offer from Duffel API
+export const fetchSingleFlightOffer = async (offerId) => {
+  try {
+    const response = await fetch(
+      `http://192.168.0.227:5000/api/book/itinerary/${offerId}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
+    );
+
+    const responseData = await response.json();
+
+    if (!response.ok) {
+      throw new Error(`HTTP error! status: ${response.status}`);
+    }
+
+    return responseData;
+  } catch (error) {
+    console.error("Error:", error);
+    throw error;
+  }
+};

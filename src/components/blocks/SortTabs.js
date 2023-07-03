@@ -51,6 +51,7 @@ export default function SortTabs({
             display: "flex",
             overflowX: "scroll",
             flexWrap: "nowrap",
+            height: "90px",
             paddingLeft: $theme.sizing.scale700,
             paddingRight: $theme.sizing.scale600,
             WebkitOverflowScrolling: "touch",
@@ -221,18 +222,6 @@ const SortButton = ({
           },
           minWidth: "33.3333%",
           borderRadius: $theme.borders.radius500,
-          "::after":
-            activeSort === sortOption
-              ? {
-                  content: '""',
-                  position: "absolute",
-                  left: 0,
-                  right: 0,
-                  bottom: 0,
-                  height: "3px",
-                  backgroundColor: $theme.colors.primary,
-                }
-              : {},
         }),
       },
     }}

@@ -193,7 +193,19 @@ function ExpandableBlock({ slice }) {
 
                           <ParagraphXSmall>
                             {currSegment.marketing_carrier.iata_code}{" "}
-                            {currSegment.marketing_carrier_flight_number}
+                            {currSegment.marketing_carrier_flight_number} &bull;{" "}
+                            {currSegment.passengers[0].cabin_class === "economy"
+                              ? "Economy"
+                              : currSegment.passengers[0].cabin_class ===
+                                "premium_economy"
+                              ? "Premium economy"
+                              : currSegment.passengers[0].cabin_class ===
+                                "business"
+                              ? "Business class"
+                              : currSegment.passengers[0].cabin_class ===
+                                "first"
+                              ? "First class"
+                              : null}
                           </ParagraphXSmall>
                         </Block>
 

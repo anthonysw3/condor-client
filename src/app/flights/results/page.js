@@ -17,9 +17,6 @@ import { Button, KIND, SIZE } from "baseui/button";
 import { Skeleton } from "baseui/skeleton";
 import { useStyletron } from "baseui";
 
-// Primitives
-import { Card } from "@/components/primitives/card";
-
 // React Grid System
 import { Container, Row, Col } from "react-grid-system";
 
@@ -165,7 +162,7 @@ export default function FlightResults() {
   // Processing Data
   useEffect(() => {
     const processedData = data.filter(
-      (offer) => offer.owner.iata_code !== "ZZ"
+      (offer) => offer.owner.iata_code !== "PL"
     );
     setFilteredData(processedData);
     console.log("Filtered Data: ", processedData);
