@@ -3,7 +3,7 @@ import { useRouter } from "next/navigation";
 
 // Base Web
 import { Block } from "baseui/block";
-import { ParagraphXSmall, HeadingXSmall } from "baseui/typography";
+import { ParagraphXSmall, HeadingXSmall, LabelXSmall } from "baseui/typography";
 import { Button, SIZE, SHAPE } from "baseui/button";
 import { useStyletron } from "baseui";
 
@@ -37,7 +37,7 @@ export default function FlightResult({ offer, cheapest, fastest }) {
   const [css, $theme] = useStyletron();
   // Provider Functions
   const { openModal, closeModal } = useCondor();
-
+  console.log(offer);
   const {
     origin,
     destination,
@@ -70,6 +70,18 @@ export default function FlightResult({ offer, cheapest, fastest }) {
     <Card onClick={handleDetailsDrawer} cheapest={cheapest} fastest={fastest}>
       {cheapest && <div></div>}
       {fastest && <div></div>}
+      <LabelXSmall
+        overrides={{
+          Block: {
+            style: ({ $theme }) => ({
+              color: $theme.colors.primary500,
+              marginBottom: $theme.sizing.scale300,
+            }),
+          },
+        }}
+      >
+        {offer.owner.name}
+      </LabelXSmall>
       {offer.slices.map((slice, index) => (
         <FlightSlice key={index} slice={slice} />
       ))}

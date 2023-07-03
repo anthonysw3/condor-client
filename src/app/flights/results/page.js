@@ -11,9 +11,10 @@ import {
   LabelMedium,
   LabelLarge,
   ParagraphXSmall,
+  ParagraphMedium,
 } from "baseui/typography";
-import { ButtonGroup } from "baseui/button-group";
 import { Button, KIND, SIZE } from "baseui/button";
+import { Skeleton } from "baseui/skeleton";
 import { useStyletron } from "baseui";
 
 // Primitives
@@ -27,6 +28,7 @@ import { motion, AnimatePresence } from "framer-motion";
 
 // Components
 import FlightResult from "@/components/blocks/FlightResult";
+import SortTabs from "@/components/blocks/SortTabs";
 import FlightSearch from "@/components/blocks/FlightSearch";
 import Calendar, { CalendarFooter } from "@/components/blocks/Calendar";
 import Passengers from "@/components/blocks/Passengers";
@@ -38,6 +40,8 @@ import {
   IconChevronDown,
   IconArrowsDiff,
   IconEdit,
+  InfoCircle,
+  IconInfoCircle,
 } from "@tabler/icons-react";
 
 // Providers
@@ -48,7 +52,11 @@ import { useSelector } from "react-redux";
 
 // Helpers
 import { getTotalDuration } from "../../../components/utils/helpers/flightUtils";
-import { formatDatetoDateMonth } from "../../../components/utils/helpers/dateUtils";
+import {
+  formatDatetoDateMonth,
+  formatDuration,
+} from "../../../components/utils/helpers/dateUtils";
+import { getCurrencySymbol } from "@/components/utils/helpers/currencyUtils";
 
 // API Fetch
 import { fetchFlightOffers } from "../../../services/flights/duffelApi";
@@ -164,10 +172,18 @@ export default function FlightResults() {
   }, [data]);
 
   useEffect(() => {
-    let newSortedData;
+    setIsSorting(true);
+
+    // Calculate 4x the cheapest fare in the filteredData
+    const fourTimesLowestFare =
+      Math.min(...filteredData.map((offer) => offer.total_amount)) * 4;
+
+    let sortedData = filteredData.filter(
+      (offer) => offer.total_amount <= fourTimesLowestFare
+    );
 
     if (sortBy === "best") {
-      newSortedData = [...filteredData].sort((a, b) => {
+      sortedData = sortedData.sort((a, b) => {
         const stopsA = a.slices.reduce(
           (acc, val) => acc + val.segments.length,
           0
@@ -183,14 +199,24 @@ export default function FlightResults() {
           return a.total_amount - b.total_amount;
         }
       });
-      console.log("Sorted by best: ", newSortedData);
     } else if (sortBy === "lowestFare") {
-      newSortedData = [...filteredData].sort(
-        (a, b) => a.total_amount - b.total_amount
-      );
-      console.log("Sorted by lowestFare: ", newSortedData);
+      sortedData = sortedData.sort((a, b) => {
+        if (a.total_amount !== b.total_amount) {
+          return a.total_amount - b.total_amount;
+        } else {
+          const durationA = a.slices.reduce(
+            (acc, val) => acc + getDurationInMinutes(val.duration),
+            0
+          );
+          const durationB = b.slices.reduce(
+            (acc, val) => acc + getDurationInMinutes(val.duration),
+            0
+          );
+          return durationA - durationB;
+        }
+      });
     } else if (sortBy === "fastest") {
-      newSortedData = [...filteredData].sort((a, b) => {
+      sortedData = sortedData.sort((a, b) => {
         const durationA = a.slices.reduce(
           (acc, val) => acc + getDurationInMinutes(val.duration),
           0
@@ -199,14 +225,16 @@ export default function FlightResults() {
           (acc, val) => acc + getDurationInMinutes(val.duration),
           0
         );
-        return durationA - durationB;
+
+        if (durationA !== durationB) {
+          return durationA - durationB;
+        } else {
+          return a.total_amount - b.total_amount;
+        }
       });
-      console.log("Sorted by fastest: ", newSortedData);
-    } else {
-      newSortedData = filteredData;
     }
 
-    setSortedData(newSortedData);
+    setSortedData(sortedData);
     setIsSorting(false);
   }, [sortBy, filteredData]);
 
@@ -351,7 +379,7 @@ export default function FlightResults() {
             >
               <Button
                 size={SIZE.compact}
-                kind={KIND.secondary}
+                kind={KIND.tertiary}
                 endEnhancer={() => <IconChevronDown size={16} />}
                 overrides={{
                   BaseButton: {
@@ -369,7 +397,7 @@ export default function FlightResults() {
               }`}</Button>
               <Button
                 size={SIZE.compact}
-                kind={KIND.secondary}
+                kind={KIND.tertiary}
                 endEnhancer={() => <IconChevronDown size={16} />}
                 overrides={{
                   BaseButton: {
@@ -387,7 +415,7 @@ export default function FlightResults() {
               }`}</Button>
               <Button
                 size={SIZE.compact}
-                kind={KIND.secondary}
+                kind={KIND.tertiary}
                 endEnhancer={() => <IconChevronDown size={16} />}
                 overrides={{
                   BaseButton: {
@@ -409,141 +437,13 @@ export default function FlightResults() {
       <Button size={SIZE.mini} onClick={sortByFastest}>
         Sort by Fastest
         </Button>*/}
-            <Card padding={`${theme.sizing.scale200}`}>
-              <ButtonGroup
-                kind={KIND.tertiary}
-                overrides={{
-                  Root: {
-                    style: ({ $theme }) => ({
-                      display: "flex",
-                      alignItems: "center",
-                      width: "100%",
-                    }),
-                  },
-                }}
-              >
-                <Button
-                  active={sortBy === "best"}
-                  onClick={() => handleSortBy("best")}
-                  overrides={{
-                    ButtonBase: {
-                      style: ({ $theme }) => ({
-                        borderBottom: `1px solid ${$theme.colors.primary500}`,
-                        width: "calc(100% / 3)",
-                      }),
-                    },
-                  }}
-                >
-                  <Block
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="start"
-                  >
-                    <LabelSmall
-                      overrides={{
-                        Block: {
-                          style: ({ $theme }) => ({
-                            fontWeight: "bold",
-                          }),
-                        },
-                      }}
-                    >
-                      Best
-                    </LabelSmall>
-                    <ParagraphXSmall
-                      overrides={{
-                        Block: {
-                          style: ({ $theme }) => ({
-                            marginTop: $theme.sizing.scale100,
-                            marginBottom: 0,
-                          }),
-                        },
-                      }}
-                    ></ParagraphXSmall>
-                  </Block>
-                </Button>
-                <Button
-                  active={sortBy === "lowestFare"}
-                  onClick={() => handleSortBy("lowestFare")}
-                  overrides={{
-                    ButtonBase: {
-                      style: ({ $theme }) => ({
-                        borderBottom: `1px solid ${$theme.colors.primary500}`,
-                        width: "calc(100% / 3)",
-                      }),
-                    },
-                  }}
-                >
-                  <Block
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="start"
-                  >
-                    <LabelSmall
-                      overrides={{
-                        Block: {
-                          style: ({ $theme }) => ({
-                            fontWeight: "bold",
-                          }),
-                        },
-                      }}
-                    >
-                      Lowest fare
-                    </LabelSmall>
-                    <ParagraphXSmall
-                      overrides={{
-                        Block: {
-                          style: ({ $theme }) => ({
-                            marginTop: $theme.sizing.scale100,
-                            marginBottom: 0,
-                          }),
-                        },
-                      }}
-                    ></ParagraphXSmall>
-                  </Block>
-                </Button>
-                <Button
-                  active={sortBy === "fastest"}
-                  onClick={() => handleSortBy("fastest")}
-                  overrides={{
-                    ButtonBase: {
-                      style: ({ $theme }) => ({
-                        borderBottom: `1px solid ${$theme.colors.primary500}`,
-                        width: "calc(100% / 3)",
-                      }),
-                    },
-                  }}
-                >
-                  <Block
-                    display="flex"
-                    flexDirection="column"
-                    alignItems="start"
-                  >
-                    <LabelSmall
-                      overrides={{
-                        Block: {
-                          style: ({ $theme }) => ({
-                            fontWeight: "bold",
-                          }),
-                        },
-                      }}
-                    >
-                      Fastest
-                    </LabelSmall>
-                    <ParagraphXSmall
-                      overrides={{
-                        Block: {
-                          style: ({ $theme }) => ({
-                            marginTop: $theme.sizing.scale100,
-                            marginBottom: 0,
-                          }),
-                        },
-                      }}
-                    ></ParagraphXSmall>
-                  </Block>
-                </Button>
-              </ButtonGroup>
-            </Card>
+            <SortTabs
+              sortBy={sortBy}
+              isLoading={isLoading}
+              isSorting={isSorting}
+              sortedData={sortedData}
+              handleSortBy={handleSortBy}
+            />
             {isLoading && (
               <Block>
                 <FlightResultSkeleton />

@@ -1,4 +1,8 @@
 export function formatDuration(isoDuration) {
+  if (!isoDuration) {
+    return null;
+  }
+
   const matches = isoDuration.match(/P(\d+D)?T?(\d+H)?(\d+M)?/);
 
   if (!matches) {
@@ -50,9 +54,17 @@ export function formatToTime(dateTimeString) {
 }
 
 // Format dateTimeString to date 00 Jan
-function formatToDate(dateTimeString) {
+export function formatToDate(dateTimeString) {
   const dateObj = new Date(dateTimeString);
   const day = dateObj.getDate();
   const month = dateObj.toLocaleString("default", { month: "short" });
   return `${day} ${month}`;
+}
+
+// Convert duration string to minutes
+export function getDurationInMinutes(duration) {
+  const regex = /PT(\d{1,2})H(\d{1,2})M/;
+  const [, hours, minutes] = duration.match(regex);
+
+  return Number(hours) * 60 + Number(minutes);
 }
