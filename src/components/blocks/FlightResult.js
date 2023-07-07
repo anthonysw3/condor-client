@@ -21,7 +21,7 @@ import FlightSlice from "./FlightSlice";
 import { IconChevronRight } from "@tabler/icons-react";
 
 // Providers
-import { useCondor } from "../utils/providers/CondorProvider";
+import { useLayer } from "../../contexts/LayerProvider";
 
 // Store
 import { useSelector, useDispatch } from "react-redux";
@@ -37,7 +37,7 @@ export default function FlightResult({ offer, cheapest, fastest }) {
   // Base Web
   const [css, $theme] = useStyletron();
   // Provider Functions
-  const { openModal, closeModal } = useCondor();
+  const { openLayer, closeLayer } = useLayer();
   console.log(offer);
   const {
     origin,
@@ -68,7 +68,7 @@ export default function FlightResult({ offer, cheapest, fastest }) {
     const content = <FlightDetails offer={offer} />;
     const footer = <Footer />;
 
-    openModal(title, content, footer);
+    openLayer(title, content, footer);
   };
 
   return (
@@ -212,10 +212,10 @@ export default function FlightResult({ offer, cheapest, fastest }) {
 
 function Footer() {
   const router = useRouter();
-  const { closeModal } = useCondor();
+  const { closeLayer } = useLayer();
   const handleContinueBooking = () => {
     router.push("/flights/book");
-    closeModal();
+    closeLayer();
   };
   return (
     <Block

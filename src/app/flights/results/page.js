@@ -2,19 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 
-// Base Web
-import { Grid, Cell } from "baseui/layout-grid";
 import { Block } from "baseui/block";
-import {
-  HeadingXSmall,
-  LabelSmall,
-  LabelMedium,
-  LabelLarge,
-  ParagraphXSmall,
-  ParagraphMedium,
-} from "baseui/typography";
+import { HeadingXSmall } from "baseui/typography";
 import { Button, KIND, SIZE } from "baseui/button";
-import { Skeleton } from "baseui/skeleton";
 import { useStyletron } from "baseui";
 
 // React Grid System
@@ -37,12 +27,10 @@ import {
   IconChevronDown,
   IconArrowsDiff,
   IconEdit,
-  InfoCircle,
-  IconInfoCircle,
 } from "@tabler/icons-react";
 
 // Providers
-import { useCondor } from "../../../components/utils/providers/CondorProvider";
+import { useLayer } from "../../../contexts/LayerProvider";
 
 // Store
 import { useSelector } from "react-redux";
@@ -82,9 +70,6 @@ function getDurationInMinutes(duration) {
 export default function FlightResults() {
   // Style
   const [css, theme] = useStyletron();
-
-  // Provider Functions
-  const { openModal, closeModal } = useCondor();
 
   // State
   const [isLoading, setIsLoading] = useState(true); // API loading

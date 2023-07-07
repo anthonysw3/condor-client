@@ -10,13 +10,12 @@ import {
 import { InputText } from "../primitives/input";
 import { List } from "../primitives/list";
 
-const Locations = ({ onChange, isOpen }) => {
+const Locations = ({ onChange, isOpen, mode }) => {
   const [locationSearch, setLocationSearch] = useState("");
   const [nearby, setNearby] = useState(false);
   const [isAskingForLocation, setIsAskingForLocation] = useState(false);
   const [filteredLoc, setFilteredLoc] = useState([]);
   const inputRef = useRef(null);
-  const workerRef = useRef(null);
 
   const handleLocationChange = (event) => {
     setLocationSearch(event.target.value);
@@ -59,7 +58,7 @@ const Locations = ({ onChange, isOpen }) => {
   return (
     <Block>
       <InputText
-        label="Depart from"
+        label={mode === "origin" ? "Depart from" : "To"}
         onChange={handleLocationChange}
         placeholder="Airport, name, or place"
         ref={inputRef}

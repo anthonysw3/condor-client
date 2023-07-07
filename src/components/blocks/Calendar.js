@@ -1,7 +1,7 @@
 import React, { useState, useEffect } from "react";
 
-// Condor Components
-import { useCondor } from "../utils/providers/CondorProvider";
+// Layer
+import { useLayer } from "../../contexts/LayerProvider";
 
 // Redux
 import { useSelector, useDispatch } from "react-redux";
@@ -382,7 +382,7 @@ export function CalendarFooter() {
   const formatSelectedDate = (date) => {
     return date ? dayjs(date).format("ddd, D MMM") : "--";
   };
-  const { closeModal } = useCondor();
+  const { closeLayer } = useLayer();
   return (
     <Block
       overrides={{
@@ -459,7 +459,7 @@ export function CalendarFooter() {
         </FlexGridItem>
       </FlexGrid>
       <Button
-        onClick={closeModal}
+        onClick={closeLayer}
         overrides={{
           BaseButton: {
             style: ({ $theme }) => ({

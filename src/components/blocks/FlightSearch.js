@@ -23,8 +23,8 @@ import Status from "./Status";
 // Icons
 import { IconSearch } from "@tabler/icons-react";
 
-// Providers
-import { useCondor } from "../utils/providers/CondorProvider";
+// Layer
+import { useLayer } from "../../contexts/LayerProvider";
 
 // Store
 import { useDispatch, useSelector } from "react-redux";
@@ -40,7 +40,7 @@ import { getTotalPassengers } from "../utils/helpers/passengerUtils";
 
 export default function FlightSearch() {
   // Provider Functions
-  const { openModal, closeModal } = useCondor();
+  const { openLayer, closeLayer } = useLayer();
   const router = useRouter();
 
   // Values
@@ -65,60 +65,62 @@ export default function FlightSearch() {
   }, [travelClass]);
 
   // Handlers
-  const handleOriginDrawer = () => {
+  const handleOriginLayer = () => {
     const title = "Where from?";
     const callbacks = {
       onChange: (selectedLocation) => {
         dispatch(setOrigin(selectedLocation));
-        closeModal();
+        closeLayer();
       },
     };
-    const content = <Locations onChange={callbacks.onChange} />;
+    const content = <Locations onChange={callbacks.onChange} mode="origin" />;
 
-    openModal(title, content, null, callbacks);
+    openLayer(title, content, null, callbacks);
   };
 
-  const handleDestinationDrawer = () => {
+  const handleDestinationLayer = () => {
     const title = "Where to?";
     const callbacks = {
       onChange: (selectedLocation) => {
         dispatch(setDestination(selectedLocation));
-        closeModal();
+        closeLayer();
       },
     };
-    const content = <Locations onChange={callbacks.onChange} />;
+    const content = (
+      <Locations onChange={callbacks.onChange} mode="destination" />
+    );
 
-    openModal(title, content, null, callbacks);
+    openLayer(title, content, null, callbacks);
   };
 
-  const handleCalendarDrawer = () => {
+  const handleCalendarLayer = () => {
     const title = "Choose your dates";
     const callbacks = {
       onChange: (selectedDates) => {
         dispatch(setDates(selectedDates));
-        closeModal();
+        closeLayer();
       },
     };
     const content = <Calendar onChange={callbacks.onChange} />;
     const footer = <CalendarFooter />;
 
-    openModal(title, content, footer, callbacks);
+    openLayer(title, content, footer, callbacks);
   };
 
-  const handlePassengerDrawer = () => {
+  const handlePassengerLayer = () => {
     const title = "Who's travelling?";
     const callbacks = {};
     const content = <Passengers onChange={callbacks.onChange} />;
 
-    openModal(title, content, null, callbacks);
+    openLayer(title, content, null, callbacks);
   };
 
-  const handleStatusDrawer = () => {
+  const handleStatusLayer = () => {
     const title = "Frequent flyer status";
     const callbacks = {};
     const content = <Status onChange={callbacks.onChange} />;
 
-    openModal(title, content, null, callbacks);
+    openLayer(title, content, null, callbacks);
   };
 
   const handleSubmit = (e) => {
@@ -161,25 +163,27 @@ export default function FlightSearch() {
         <Cell span={[4, 2, 4]}>
           <InputText
             label="From"
-            value={`${origin.airport}${origin.iata ? ` (${origin.iata})` : ""}`}
+            value={`${origin?.airport}${
+              origin?.iata ? ` (${origin?.iata})` : ""
+            }`}
             placeholder="City or airport"
-            subText={`${origin.name}, ${origin.country}`}
-            onClick={handleOriginDrawer}
+            subText={`${origin?.name}, ${origin?.country}`}
+            onClick={handleOriginLayer}
           />
         </Cell>
         <Cell span={[4, 2, 4]}>
           <InputText
             label="To"
-            value={`${destination.airport}${
-              destination.iata ? ` (${destination.iata})` : ""
+            value={`${destination?.airport}${
+              destination?.iata ? ` (${destination?.iata})` : ""
             }`}
             placeholder="City or airport"
             subText={
-              destination.name
-                ? `${destination.name}, ${destination.country}`
+              destination?.name
+                ? `${destination?.name}, ${destination?.country}`
                 : "Any worldwide airport"
             }
-            onClick={handleDestinationDrawer}
+            onClick={handleDestinationLayer}
           />
         </Cell>
         <Cell span={[2, 2, 2]}>
@@ -187,7 +191,7 @@ export default function FlightSearch() {
             label="Departure"
             value={dates.outbound}
             placeholder="+ Add date"
-            onClick={handleCalendarDrawer}
+            onClick={handleCalendarLayer}
           />
         </Cell>
         <Cell span={[2, 2, 2]}>
@@ -195,7 +199,7 @@ export default function FlightSearch() {
             label="Return"
             value={dates.inbound}
             placeholder="+ Add date"
-            onClick={handleCalendarDrawer}
+            onClick={handleCalendarLayer}
           />
         </Cell>
       </Grid>
@@ -204,11 +208,11 @@ export default function FlightSearch() {
           <InputPersons
             label="Passengers"
             passengers={totalPassengers}
-            onClick={handlePassengerDrawer}
+            onClick={handlePassengerLayer}
           />
         </Cell>
         <Cell span={[4, 5, 7]}>
-          <InputStatus label="Frequent Flyer" onClick={handleStatusDrawer} />
+          <InputStatus label="Frequent Flyer" onClick={handleStatusLayer} />
         </Cell>
         <Cell span={[4, 2, 3]}>
           <Button
