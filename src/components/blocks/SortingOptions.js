@@ -74,16 +74,16 @@ const SortingOption = ({
 export default function SortingOptions({
   setSortingMethod,
   sortingMethod,
-  firstBestOffer,
-  firstCheapestOffer,
-  firstFastestOffer,
+  offersByBest,
+  offersByPrice,
+  offersByDuration,
   totalPassengers,
 }) {
   const [css, theme] = useStyletron();
   const methods = [
-    { method: "best", label: "Best", offer: firstBestOffer },
-    { method: "price", label: "Lowest", offer: firstCheapestOffer },
-    { method: "duration", label: "Fastest", offer: firstFastestOffer },
+    { method: "best", label: "Best", offer: offersByBest[0] },
+    { method: "price", label: "Lowest", offer: offersByPrice[0] },
+    { method: "duration", label: "Fastest", offer: offersByDuration[0] },
   ];
 
   const handleSortingMethodChange = (method) => {

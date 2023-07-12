@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useEffect, useState, useMemo } from "react";
+import React, { useEffect, useState, useRef } from "react";
 
 import { Block } from "baseui/block";
 
@@ -19,7 +19,10 @@ import { useSelector } from "react-redux";
 // API Fetch
 import { fetchFlightOffers } from "../../../services/flights/duffelApi";
 
+import useIntersectionObserver from "@/components/utils/helpers/useIntersectionObserver";
+
 export default function FlightResults() {
+  const ref = (useRef < HTMLDivElement) | (null > null);
   // State
   const [isLoading, setIsLoading] = useState(true); // API loading
   const [after, setAfter] = useState(null); // API pagination
@@ -37,6 +40,71 @@ export default function FlightResults() {
     travelClass,
     passengers: { adults, children, infants },
   } = useSelector((state) => state.flight);
+
+  const sortByBest = (a, b) => {
+    // If the offer's slice has no segments, default to 0 stops
+    const aStops = a.slices.reduce(
+      (acc, slice) => acc + (slice.segments ? slice.segments.length : 0),
+      0
+    );
+    const bStops = b.slices.reduce(
+      (acc, slice) => acc + (slice.segments ? slice.segments.length : 0),
+      0
+    );
+
+    return aStops - bStops;
+  };
+
+  const sortByPrice = (a, b) => a.total_amount - b.total_amount;
+
+  const sortByDuration = (a, b) => {
+    const calculateTotalDuration = (offer) => {
+      let totalDuration = 0;
+      offer.slices.forEach((slice) => {
+        const departureTime = new Date(slice.segments[0].departing_at);
+        const arrivalTime = new Date(
+          slice.segments[slice.segments.length - 1].arriving_at
+        );
+        const duration = (arrivalTime - departureTime) / (1000 * 60); // Duration in minutes
+        totalDuration += duration;
+      });
+      return totalDuration;
+    };
+
+    const aTotalDuration = calculateTotalDuration(a);
+    const bTotalDuration = calculateTotalDuration(b);
+
+    return aTotalDuration - bTotalDuration;
+  };
+
+  function mergeSortedArrays(arr1, arr2, comparisonFunction) {
+    const merged = [];
+    let index1 = 0;
+    let index2 = 0;
+
+    while (index1 < arr1.length && index2 < arr2.length) {
+      // Compare elements from arr1 and arr2 and push the smaller one into the merged array
+      if (comparisonFunction(arr1[index1], arr2[index2]) < 0) {
+        merged.push(arr1[index1]);
+        index1++;
+      } else {
+        merged.push(arr2[index2]);
+        index2++;
+      }
+    }
+
+    // If there are remaining elements in arr1 or arr2, push them into the merged array
+    while (index1 < arr1.length) {
+      merged.push(arr1[index1]);
+      index1++;
+    }
+    while (index2 < arr2.length) {
+      merged.push(arr2[index2]);
+      index2++;
+    }
+
+    return merged;
+  }
 
   const fetchFlightOffersPage = async (after) => {
     try {
@@ -57,6 +125,21 @@ export default function FlightResults() {
       const newAfter = results.meta.after || null;
       console.log("After:", newAfter);
       console.log("Offers:", newOffers);
+
+      const newOffersSortedByBest = [...newOffers].sort(sortByBest);
+      const newOffersSortedByPrice = [...newOffers].sort(sortByPrice);
+      const newOffersSortedByDuration = [...newOffers].sort(sortByDuration);
+
+      setOffersByBest((prevOffers) =>
+        mergeSortedArrays(prevOffers, newOffersSortedByBest, sortByBest)
+      );
+      setOffersByPrice((prevOffers) =>
+        mergeSortedArrays(prevOffers, newOffersSortedByPrice, sortByPrice)
+      );
+      setOffersByDuration((prevOffers) =>
+        mergeSortedArrays(prevOffers, newOffersSortedByDuration, sortByDuration)
+      );
+
       setOffers((prevOffers) => [...prevOffers, ...newOffers]);
       setAfter((prevAfter) => newAfter);
 
@@ -91,70 +174,25 @@ export default function FlightResults() {
     }
   }, [after]);
 
-  // Sorted states
-  const sortedByBest = useMemo(() => {
-    return [...offers].sort((a, b) => {
-      // If the offer's slice has no segments, default to 0 stops
-      const aStops = a.slices.reduce(
-        (acc, slice) => acc + (slice.segments ? slice.segments.length : 0),
-        0
-      );
-      const bStops = b.slices.reduce(
-        (acc, slice) => acc + (slice.segments ? slice.segments.length : 0),
-        0
-      );
-
-      return aStops - bStops;
-    });
-  }, [offers]);
-
-  const sortedByPrice = useMemo(() => {
-    return [...offers].sort((a, b) => a.total_amount - b.total_amount);
-  }, [offers]);
-
-  const sortedByDuration = useMemo(() => {
-    return [...offers].sort((a, b) => {
-      const calculateTotalDuration = (offer) => {
-        let totalDuration = 0;
-        offer.slices.forEach((slice) => {
-          const departureTime = new Date(slice.segments[0].departing_at);
-          const arrivalTime = new Date(
-            slice.segments[slice.segments.length - 1].arriving_at
-          );
-          const duration = (arrivalTime - departureTime) / (1000 * 60); // Duration in minutes
-          totalDuration += duration;
-        });
-        return totalDuration;
-      };
-
-      const aTotalDuration = calculateTotalDuration(a);
-      const bTotalDuration = calculateTotalDuration(b);
-
-      return aTotalDuration - bTotalDuration;
-    });
-  }, [offers]);
-
   const [sortingMethod, setSortingMethod] = useState("best");
 
-  // Sorted offers based on sorting method
-  const sortedOffers = useMemo(() => {
-    switch (sortingMethod) {
-      case "best":
-        return sortedByBest;
-      case "price":
-        return sortedByPrice;
-      case "duration":
-        return sortedByDuration;
-      default:
-        return offers;
-    }
-  }, [sortingMethod, sortedByBest, sortedByPrice, sortedByDuration]);
-
-  const firstBestOffer = sortedByBest[0];
-  const firstCheapestOffer = sortedByPrice[0];
-  const firstFastestOffer = sortedByDuration[0];
-
   const totalPassengers = adults + children + infants;
+
+  const [numItemsDisplayed, setNumItemsDisplayed] = useState(20);
+
+  const sortedOffers =
+    sortingMethod === "best"
+      ? offersByBest
+      : sortingMethod === "price"
+      ? offersByPrice
+      : offersByDuration;
+
+  const handleLastItemVisible = () => {
+    // Increase the number of items displayed
+    setNumItemsDisplayed((prevNumItemsDisplayed) => prevNumItemsDisplayed + 20); // Load 20 more items, adjust as needed
+  };
+
+  const lastItemRef = useIntersectionObserver(handleLastItemVisible);
 
   return (
     <main>
@@ -173,9 +211,9 @@ export default function FlightResults() {
           <SortingOptions
             setSortingMethod={setSortingMethod}
             sortingMethod={sortingMethod}
-            firstBestOffer={firstBestOffer}
-            firstCheapestOffer={firstCheapestOffer}
-            firstFastestOffer={firstFastestOffer}
+            offersByBest={offersByBest}
+            offersByPrice={offersByPrice}
+            offersByDuration={offersByDuration}
             totalPassengers={totalPassengers}
           />
           {isLoading ? (
@@ -188,9 +226,16 @@ export default function FlightResults() {
           ) : (
             <Row>
               <Col lg={12}>
-                {sortedOffers.map((offer, index) => (
-                  <FlightResult key={index} offer={offer} />
-                ))}
+                {sortedOffers
+                  .slice(0, numItemsDisplayed)
+                  .map((offer, index, arr) => (
+                    <div
+                      ref={index === arr.length - 1 ? lastItemRef : null}
+                      key={offer.id}
+                    >
+                      <FlightResult offer={offer} />
+                    </div>
+                  ))}
               </Col>
             </Row>
           )}
