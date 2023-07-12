@@ -7,7 +7,7 @@ import { BaseProvider } from "baseui";
 import { styled, useStyletron } from "baseui";
 
 // Condor
-import CondorLightTheme from "../theme/CondorLightTheme";
+import LightTheme from "../theme/LightTheme";
 import { LayerProvider } from "../contexts/LayerProvider";
 
 // Redux
@@ -44,7 +44,7 @@ export default function RootLayout({ children }) {
         <Provider store={store}>
           <PersistGate loading={null} persistor={persistor}>
             <StyletronProvider value={engine}>
-              <BaseProvider theme={CondorLightTheme}>
+              <BaseProvider theme={LightTheme}>
                 <LayerProvider>
                   <AppContainer>
                     <Container

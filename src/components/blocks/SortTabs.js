@@ -9,17 +9,10 @@ import {
   ParagraphXSmall,
 } from "baseui/typography";
 import { Skeleton } from "baseui/skeleton";
-import { useStyletron } from "baseui";
-
-// Icons
-import { IconInfoCircle } from "@tabler/icons-react";
 
 // Helpers
 import { getCurrencySymbol } from "../utils/helpers/currencyUtils";
 import { formatDuration } from "../utils/helpers/dateUtils";
-
-// Components
-import { Card } from "../primitives/card";
 
 const sortTitleMap = {
   best: "Best",
@@ -34,7 +27,6 @@ export default function SortTabs({
   sortedData,
   handleSortBy,
 }) {
-  const [css, theme] = useStyletron();
   return (
     <Block
       size={SIZE.compact}
@@ -51,7 +43,7 @@ export default function SortTabs({
             display: "flex",
             overflowX: "scroll",
             flexWrap: "nowrap",
-            height: "90px",
+            height: "85px",
             paddingLeft: $theme.sizing.scale700,
             paddingRight: $theme.sizing.scale600,
             WebkitOverflowScrolling: "touch",
@@ -220,7 +212,7 @@ const SortButton = ({
           ":hover": {
             backgroundColor: $theme.colors.primary50,
           },
-          minWidth: "33.3333%",
+          minWidth: "100px",
           borderRadius: $theme.borders.radius500,
         }),
       },

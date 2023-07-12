@@ -58,37 +58,56 @@ export default function Calendar() {
   const handleDateSelect = (date) => {
     const isPast = date.isBefore(currentDate, "day");
     const isToday = date.isSame(currentDate, "day");
+
     if (isPast || isToday) {
       return; // Do not update selection for past or today's date
     }
 
-    if (nextSelection === "outbound") {
-      setSelectedDates([date, selectedDates[1]]);
-      dispatch(
-        setDates({
-          outbound: date.format("YYYY-MM-DD"),
-          inbound: selectedDates[1]?.format("YYYY-MM-DD"),
-        })
+    const isAlreadySelected = selectedDates.some((selectedDate) =>
+      selectedDate.isSame(date, "day")
+    );
+
+    let newSelectedDates = [];
+    if (isAlreadySelected) {
+      // Date is already selected, so deselect it
+      newSelectedDates = selectedDates.filter(
+        (selectedDate) => !selectedDate.isSame(date, "day")
       );
-      setNextSelection("inbound");
     } else {
-      if (date.isAfter(selectedDates[0])) {
-        setSelectedDates([selectedDates[0], date]);
-        dispatch(
-          setDates({
-            outbound: selectedDates[0].format("YYYY-MM-DD"),
-            inbound: date.format("YYYY-MM-DD"),
-          })
-        );
+      // New date is being selected
+      if (selectedDates.length >= 1) {
+        // We have 1 or 2 dates selected, so we need to consider the new date
+        if (selectedDates[0].isAfter(date)) {
+          newSelectedDates = [date]; // set only the new outbound date
+        } else if (
+          selectedDates.length === 1 ||
+          selectedDates[1].isAfter(date)
+        ) {
+          newSelectedDates = [selectedDates[0], date]; // add return date only if it is after the outbound date
+        }
       } else {
-        setSelectedDates([date, selectedDates[0]]);
-        dispatch(
-          setDates({
-            outbound: date.format("YYYY-MM-DD"),
-            inbound: selectedDates[0].format("YYYY-MM-DD"),
-          })
-        );
+        // We have 0 dates selected, so just add the new date
+        newSelectedDates = [date];
       }
+    }
+
+    setSelectedDates(newSelectedDates);
+
+    dispatch(
+      setDates({
+        outbound: newSelectedDates[0]?.format("YYYY-MM-DD"),
+        inbound: newSelectedDates[1]?.format("YYYY-MM-DD"),
+      })
+    );
+
+    // If we have two dates selected, decide which one to replace next time based on which one is later
+    if (newSelectedDates.length === 2) {
+      if (newSelectedDates[0].isAfter(newSelectedDates[1])) {
+        setNextSelection("outbound");
+      } else {
+        setNextSelection("inbound");
+      }
+    } else {
       setNextSelection("outbound");
     }
   };

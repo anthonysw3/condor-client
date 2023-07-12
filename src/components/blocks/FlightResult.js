@@ -7,9 +7,6 @@ import { ParagraphXSmall, HeadingXSmall, LabelXSmall } from "baseui/typography";
 import { Button, SIZE, SHAPE } from "baseui/button";
 import { useStyletron } from "baseui";
 
-// React Grid System
-import { Container, Row, Col } from "react-grid-system";
-
 // Primitives
 import { Card } from "../primitives/card";
 

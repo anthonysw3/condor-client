@@ -27,7 +27,7 @@ export function Timeline() {
         overrides={{
           Block: {
             style: ({ $theme }) => ({
-              background: $theme.colors.primary300,
+              background: $theme.colors.primary200,
               borderRadius: "100px",
               width: "15px",
               height: "15px",
@@ -39,7 +39,7 @@ export function Timeline() {
                 position: "absolute",
                 bottom: 0,
                 left: "5px",
-                background: $theme.colors.primary300,
+                background: $theme.colors.primary200,
                 width: "5px",
                 height: "100vh",
               },
@@ -52,7 +52,7 @@ export function Timeline() {
         overrides={{
           Block: {
             style: ({ $theme }) => ({
-              background: $theme.colors.primary300,
+              background: $theme.colors.primary200,
               borderRadius: "100px",
               width: "15px",
               height: "15px",
@@ -64,7 +64,7 @@ export function Timeline() {
                 position: "absolute",
                 bottom: 0,
                 left: "5px",
-                background: $theme.colors.primary300,
+                background: $theme.colors.primary200,
                 width: "5px",
                 height: "100vh",
               },

@@ -5,11 +5,11 @@ import { Block } from "baseui/block";
 import { Skeleton } from "baseui/skeleton";
 
 // Primitives
-import { Card } from "../primitives/card";
+import { Panel } from "../containers/Panel";
 
 export function FlightResultSkeleton() {
   return (
-    <Card>
+    <Panel>
       <Block
         display="flex"
         justifyContent="space-between"
@@ -117,13 +117,13 @@ export function FlightResultSkeleton() {
           }}
         />
       </Block>
-    </Card>
+    </Panel>
   );
 }
 
 export function FlightSummarySkeleton() {
   return (
-    <Card>
+    <Panel>
       <Skeleton
         rows={2}
         width="200px"
@@ -176,6 +176,6 @@ export function FlightSummarySkeleton() {
         }}
         animation
       />
-    </Card>
+    </Panel>
   );
 }
