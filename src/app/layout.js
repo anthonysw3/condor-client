@@ -9,6 +9,7 @@ import { styled, useStyletron } from "baseui";
 // Condor
 import LightTheme from "../theme/LightTheme";
 import { LayerProvider } from "../contexts/LayerProvider";
+import { FlightsProvider } from "../contexts/FlightsProvider";
 
 // Redux
 import { Provider } from "react-redux";
@@ -46,13 +47,15 @@ export default function RootLayout({ children }) {
             <StyletronProvider value={engine}>
               <BaseProvider theme={LightTheme}>
                 <LayerProvider>
-                  <AppContainer>
-                    <Container
-                      style={{ paddingTop: `${theme.sizing.scale600}` }}
-                    >
-                      {children}
-                    </Container>
-                  </AppContainer>
+                  <FlightsProvider>
+                    <AppContainer>
+                      <Container
+                        style={{ paddingTop: `${theme.sizing.scale600}` }}
+                      >
+                        {children}
+                      </Container>
+                    </AppContainer>
+                  </FlightsProvider>
                 </LayerProvider>
               </BaseProvider>
             </StyletronProvider>

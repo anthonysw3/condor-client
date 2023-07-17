@@ -9,67 +9,76 @@ import { LabelXSmall, LabelMedium } from "baseui/typography";
 import { Skeleton } from "baseui/skeleton";
 import { useStyletron } from "baseui";
 
+import { useSelector } from "react-redux";
+
 import { getCurrencySymbol } from "../utils/helpers/currencyUtils";
 
-const SortingOption = ({
+function SortingOption({
   method,
   sortingMethod,
   setSortingMethod,
   label,
   offer,
-  totalPassengers,
-}) => (
-  <Col xs={4}>
-    <Block
-      onClick={() => setSortingMethod(method)}
-      overrides={{
-        Block: {
-          style: ({ $theme }) => ({
-            margin: 0,
-            padding: `${$theme.sizing.scale400}`,
-            backgroundColor:
-              sortingMethod === method
-                ? `${$theme.colors.primary50}`
-                : `${$theme.colors.backgroundPrimary}`,
-            borderRadius: $theme.borders.radius300,
-            ":hover": {
-              backgroundColor: $theme.colors.primary100,
-              cursor: "pointer",
-            },
-            ":active": {
-              backgroundColor: $theme.colors.primary50,
-            },
-          }),
-        },
-      }}
-    >
-      <LabelXSmall
+}) {
+  const {
+    passengers: { adults, children, infants },
+  } = useSelector((state) => state.flight);
+
+  const totalPassengers = adults + children + infants;
+
+  return (
+    <Col xs={4}>
+      <Block
+        onClick={() => setSortingMethod(method)}
         overrides={{
           Block: {
             style: ({ $theme }) => ({
-              marginBottom: $theme.sizing.scale100,
+              margin: 0,
+              padding: `${$theme.sizing.scale400}`,
+              backgroundColor:
+                sortingMethod === method
+                  ? `${$theme.colors.primary50}`
+                  : `${$theme.colors.backgroundPrimary}`,
+              borderRadius: $theme.borders.radius300,
+              ":hover": {
+                backgroundColor: $theme.colors.primary100,
+                cursor: "pointer",
+              },
+              ":active": {
+                backgroundColor: $theme.colors.primary50,
+              },
             }),
           },
         }}
       >
-        {label}
-      </LabelXSmall>
-      <LabelMedium
-        overrides={{
-          Block: {
-            style: ({ $theme }) => ({
-              fontWeight: "bold",
-            }),
-          },
-        }}
-      >
-        {!offer && <Skeleton height="20px" width="50px" animation />}
-        {getCurrencySymbol(offer && offer.total_currency)}
-        {offer && Math.ceil(offer?.total_amount / totalPassengers)}
-      </LabelMedium>
-    </Block>
-  </Col>
-);
+        <LabelXSmall
+          overrides={{
+            Block: {
+              style: ({ $theme }) => ({
+                marginBottom: $theme.sizing.scale100,
+              }),
+            },
+          }}
+        >
+          {label}
+        </LabelXSmall>
+        <LabelMedium
+          overrides={{
+            Block: {
+              style: ({ $theme }) => ({
+                fontWeight: "bold",
+              }),
+            },
+          }}
+        >
+          {!offer && <Skeleton height="20px" width="50px" animation />}
+          {getCurrencySymbol(offer && offer.total_currency)}
+          {offer && Math.ceil(offer?.total_amount / totalPassengers)}
+        </LabelMedium>
+      </Block>
+    </Col>
+  );
+}
 
 export default function SortingOptions({
   setSortingMethod,
@@ -77,7 +86,6 @@ export default function SortingOptions({
   offersByBest,
   offersByPrice,
   offersByDuration,
-  totalPassengers,
 }) {
   const [css, theme] = useStyletron();
   const methods = [
@@ -109,7 +117,6 @@ export default function SortingOptions({
             setSortingMethod={handleSortingMethodChange}
             label={label}
             offer={offer}
-            totalPassengers={totalPassengers}
           />
         ))}
       </Row>

@@ -8,7 +8,7 @@ import { Block } from "baseui/block";
 import { FormControl } from "baseui/form-control";
 import { Input } from "baseui/input";
 import { Button, SHAPE, SIZE, KIND } from "baseui/button";
-import { LabelXSmall, LabelMedium, LabelLarge } from "baseui/typography";
+import { LabelXSmall, LabelMedium } from "baseui/typography";
 import { styled } from "baseui";
 
 // Icons
@@ -26,7 +26,6 @@ const InputWrapper = styled(Block, ({ $active, $theme }) => ({
 
 const FloatingLabel = styled(LabelXSmall, ({ $active, $theme }) => ({
   color: $theme.colors.primary500,
-  textTransform: "uppercase",
 }));
 
 const LabelWrapper = styled("div", ({ $active, $theme }) => ({
@@ -40,7 +39,7 @@ const LabelWrapper = styled("div", ({ $active, $theme }) => ({
 const SubTextLabel = styled(LabelXSmall, ({ $theme }) => ({
   position: "absolute",
   bottom: $theme.sizing.scale500,
-  color: $theme.colors.primary,
+  color: $theme.colors.primary500,
   paddingLeft: $theme.sizing.scale600,
 }));
 
@@ -67,8 +66,8 @@ export const InputPersons = ({ label, passengers, onClick, ...props }) => {
       overrides={{
         Block: {
           style: ({ $theme }) => ({
-            borderRadius: $theme.borders.radius500,
-            padding: $theme.sizing.scale500,
+            borderRadius: $theme.borders.radius300,
+            padding: $theme.sizing.scale300,
             display: "flex",
             flexDirection: "column",
           }),
@@ -173,8 +172,8 @@ export const InputStatus = ({ label, status, onClick, ...props }) => {
       overrides={{
         Block: {
           style: ({ $theme }) => ({
-            borderRadius: $theme.borders.radius500,
-            padding: $theme.sizing.scale500,
+            borderRadius: $theme.borders.radius300,
+            padding: $theme.sizing.scale300,
             display: "flex",
             flexDirection: "column",
           }),
@@ -252,7 +251,7 @@ export const InputText = ({
       overrides={{
         ControlContainer: {
           style: ({ $theme }) => ({
-            marginBottom: $theme.sizing.scale100,
+            marginBottom: 0,
           }),
         },
       }}
@@ -273,7 +272,7 @@ export const InputText = ({
                 paddingRight: $theme.sizing.scale400,
                 borderWidth: "1px",
                 borderColor: $theme.colors.primary200,
-                borderRadius: $theme.borders.radius500,
+                borderRadius: $theme.borders.radius300,
               }),
               props: {
                 onClick: onClick,
@@ -291,7 +290,7 @@ export const InputText = ({
             Input: {
               style: ({ $theme }) => ({
                 fontWeight: "bold",
-                fontSize: $theme.typography.LabelLarge.fontSize,
+                fontSize: $theme.typography.LabelMedium.fontSize,
               }),
             },
           }}
@@ -339,7 +338,7 @@ export const InputDatePick = ({
                 paddingRight: $theme.sizing.scale400,
                 borderWidth: "1px",
                 borderColor: $theme.colors.primary200,
-                borderRadius: $theme.borders.radius500,
+                borderRadius: $theme.borders.radius300,
                 position: "relative",
                 zIndex: 1,
               }),
@@ -364,7 +363,7 @@ export const InputDatePick = ({
             Input: {
               style: ({ $theme }) => ({
                 fontWeight: "bold",
-                fontSize: $theme.typography.LabelLarge.fontSize,
+                fontSize: $theme.typography.LabelMedium.fontSize,
                 backgroundColor: $theme.colors.backgroundPrimary,
                 paddingRight: 0,
                 marginRight: 0,
