@@ -16,8 +16,11 @@ export const LayerProvider = ({ children }) => {
     setLayer({ isOpen: true, title, content, footer, callbacks });
   };
 
-  const closeLayer = () => {
+  const closeLayer = (callback) => {
     setLayer({ isOpen: false, content: null, callbacks: {} });
+    if (callback && typeof callback === "function") {
+      callback();
+    }
   };
 
   return (

@@ -10,6 +10,7 @@
   },
   "dependencies": {
     "@reduxjs/toolkit": "^1.9.5",
+    "@sanity/client": "^6.1.7",
     "@tabler/icons-react": "^2.21.0",
     "axios": "^1.4.0",
     "baseui": "^13.0.0",

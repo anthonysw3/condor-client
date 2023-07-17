@@ -2,16 +2,27 @@
 
 import React, { useEffect, useState, useRef } from "react";
 
+import { createClient } from "@sanity/client";
+
 import { Block } from "baseui/block";
+import { Button, KIND, SIZE } from "baseui/button";
+
+// Icons
+import { IconAdjustmentsHorizontal } from "@tabler/icons-react";
 
 // React Grid System
 import { Row, Col } from "react-grid-system";
+
+// Providers
+import { useLayer } from "@/contexts/LayerProvider";
 
 // Components
 import EditBlock from "@/components/blocks/EditBlock";
 import FlightResult from "@/components/blocks/FlightResult";
 import { FlightResultSkeleton } from "@/components/containers/Skeletons";
 import SortingOptions from "@/components/blocks/SortingOptions";
+import SearchingText from "@/components/blocks/SearchingText";
+import Filters from "@/components/blocks/Filters";
 
 // Store
 import { useSelector } from "react-redux";
@@ -22,11 +33,12 @@ import { fetchFlightOffers } from "../../../services/flights/duffelApi";
 import useIntersectionObserver from "@/components/utils/helpers/useIntersectionObserver";
 
 export default function FlightResults() {
-  const ref = (useRef < HTMLDivElement) | (null > null);
   // State
   const [isLoading, setIsLoading] = useState(true); // API loading
   const [after, setAfter] = useState(null); // API pagination
   const [offers, setOffers] = useState([]);
+
+  const [refreshKey, setRefreshKey] = useState(0);
 
   const [offersByBest, setOffersByBest] = useState([]);
   const [offersByPrice, setOffersByPrice] = useState([]);
@@ -42,17 +54,37 @@ export default function FlightResults() {
   } = useSelector((state) => state.flight);
 
   const sortByBest = (a, b) => {
-    // If the offer's slice has no segments, default to 0 stops
-    const aStops = a.slices.reduce(
-      (acc, slice) => acc + (slice.segments ? slice.segments.length : 0),
-      0
+    // Calculate min and max for normalization
+    const allOffers = [...offers];
+    const minPrice = Math.min(...allOffers.map((offer) => offer.total_amount));
+    const maxPrice = Math.max(...allOffers.map((offer) => offer.total_amount));
+    const minDuration = Math.min(...allOffers.map(calculateDuration));
+    const maxDuration = Math.max(...allOffers.map(calculateDuration));
+    const minStops = Math.min(...allOffers.map(calculateStops));
+    const maxStops = Math.max(...allOffers.map(calculateStops));
+
+    // Calculate score for each offer
+    const aScore = calculateScore(
+      a,
+      minPrice,
+      maxPrice,
+      minDuration,
+      maxDuration,
+      minStops,
+      maxStops
     );
-    const bStops = b.slices.reduce(
-      (acc, slice) => acc + (slice.segments ? slice.segments.length : 0),
-      0
+    const bScore = calculateScore(
+      b,
+      minPrice,
+      maxPrice,
+      minDuration,
+      maxDuration,
+      minStops,
+      maxStops
     );
 
-    return aStops - bStops;
+    // Return comparison of scores
+    return aScore - bScore;
   };
 
   const sortByPrice = (a, b) => a.total_amount - b.total_amount;
@@ -106,6 +138,9 @@ export default function FlightResults() {
     return merged;
   }
 
+  const ref = useRef(null);
+  const uniqueFlights = useRef(new Set());
+
   const fetchFlightOffersPage = async (after) => {
     try {
       const flightOffers = await fetchFlightOffers({
@@ -123,12 +158,23 @@ export default function FlightResults() {
       const { results } = flightOffers;
       const newOffers = results.data || [];
       const newAfter = results.meta.after || null;
-      console.log("After:", newAfter);
-      console.log("Offers:", newOffers);
 
-      const newOffersSortedByBest = [...newOffers].sort(sortByBest);
-      const newOffersSortedByPrice = [...newOffers].sort(sortByPrice);
-      const newOffersSortedByDuration = [...newOffers].sort(sortByDuration);
+      const uniqueNewOffers = newOffers.filter((offer) => {
+        const flightIdentifier = `${offer.owner.name}-${offer.total_amount}`;
+
+        if (uniqueFlights.current.has(flightIdentifier)) {
+          return false;
+        }
+
+        uniqueFlights.current.add(flightIdentifier);
+        return true;
+      });
+
+      const newOffersSortedByBest = [...uniqueNewOffers].sort(sortByBest);
+      const newOffersSortedByPrice = [...uniqueNewOffers].sort(sortByPrice);
+      const newOffersSortedByDuration = [...uniqueNewOffers].sort(
+        sortByDuration
+      );
 
       setOffersByBest((prevOffers) =>
         mergeSortedArrays(prevOffers, newOffersSortedByBest, sortByBest)
@@ -140,11 +186,13 @@ export default function FlightResults() {
         mergeSortedArrays(prevOffers, newOffersSortedByDuration, sortByDuration)
       );
 
-      setOffers((prevOffers) => [...prevOffers, ...newOffers]);
-      setAfter((prevAfter) => newAfter);
+      setOffers((prevOffers) => [...prevOffers, ...uniqueNewOffers]);
+      setAfter(newAfter);
 
       if (!newAfter && !hasReceivedFirstPage) {
         setHasReceivedFirstPage(true); // Set flag indicating the first page has been received
+        setIsLoading(false); // Set isLoading to false when first page arrives
+        console.log("Loading state set to false");
       }
     } catch (error) {
       console.error("Error:", error);
@@ -174,6 +222,32 @@ export default function FlightResults() {
     }
   }, [after]);
 
+  const client = createClient({
+    projectId: "6d2pzg6a",
+    dataset: "production",
+    useCdn: true,
+  });
+
+  const [airlineCount, setAirlineCount] = useState(null);
+
+  const fetchAirlineCount = async () => {
+    try {
+      const response = await client.fetch('*[_type == "airline"]');
+      const count = response.length;
+      setAirlineCount(count);
+    } catch (error) {
+      console.error("Error:", error);
+    }
+  };
+
+  useEffect(() => {
+    fetchAirlineCount();
+  }, []);
+
+  useEffect(() => {
+    fetchAirlineCount();
+  }, []);
+
   const [sortingMethod, setSortingMethod] = useState("best");
 
   const totalPassengers = adults + children + infants;
@@ -194,6 +268,72 @@ export default function FlightResults() {
 
   const lastItemRef = useIntersectionObserver(handleLastItemVisible);
 
+  /////////// ALGORITHM
+
+  // Helper functions
+  const calculateDuration = (offer) => {
+    let totalDuration = 0;
+    offer.slices.forEach((slice) => {
+      const departureTime = new Date(slice.segments[0].departing_at);
+      const arrivalTime = new Date(
+        slice.segments[slice.segments.length - 1].arriving_at
+      );
+      const duration = (arrivalTime - departureTime) / (1000 * 60); // Duration in minutes
+      totalDuration += duration;
+    });
+    return totalDuration;
+  };
+
+  const calculateStops = (offer) => {
+    let totalStops = 0;
+    offer.slices.forEach((slice) => {
+      totalStops += slice.segments ? slice.segments.length : 0;
+    });
+    return totalStops;
+  };
+
+  const calculateScore = (
+    offer,
+    minPrice,
+    maxPrice,
+    minDuration,
+    maxDuration,
+    minStops,
+    maxStops
+  ) => {
+    // Normalize values
+    const normalizedPrice =
+      (offer.total_amount - minPrice) / (maxPrice - minPrice);
+    const normalizedDuration =
+      (calculateDuration(offer) - minDuration) / (maxDuration - minDuration);
+    const normalizedStops =
+      (calculateStops(offer) - minStops) / (maxStops - minStops);
+
+    // Calculate score
+    return (
+      0.5 * normalizedPrice + 0.3 * normalizedDuration + 0.2 * normalizedStops
+    );
+  };
+
+  //////////// ALGORITHM
+
+  const totalResults = offers.length;
+
+  const { openLayer, closeLayer } = useLayer();
+
+  // Handlers
+  const handleFiltersDrawer = () => {
+    const title = `Filters`;
+    const content = <Filters />;
+
+    openLayer(title, content, null);
+  };
+
+  const refreshFlightOffers = async () => {
+    setIsLoading(true);
+    await fetchFlightOffersPage(after);
+  };
+
   return (
     <main>
       <Row>
@@ -207,6 +347,7 @@ export default function FlightResults() {
             adults={adults}
             children={children}
             infants={infants}
+            refreshFlightOffers={refreshFlightOffers}
           />
           <SortingOptions
             setSortingMethod={setSortingMethod}
@@ -216,6 +357,36 @@ export default function FlightResults() {
             offersByDuration={offersByDuration}
             totalPassengers={totalPassengers}
           />
+          <Block
+            overrides={{
+              Block: {
+                style: ({ $theme }) => ({
+                  display: "flex",
+                  justifyContent: "space-between",
+                  marginTop: $theme.sizing.scale500,
+                  marginLeft: $theme.sizing.scale300,
+                  marginRight: $theme.sizing.scale300,
+                }),
+              },
+            }}
+          >
+            <Block>
+              <SearchingText
+                totalResults={totalResults}
+                airlines={airlineCount}
+              />
+            </Block>
+            <Block>
+              <Button
+                onClick={handleFiltersDrawer}
+                size={SIZE.compact}
+                kind={KIND.secondary}
+                startEnhancer={<IconAdjustmentsHorizontal size={16} />}
+              >
+                Filters
+              </Button>
+            </Block>
+          </Block>
           {isLoading ? (
             <Block>
               <FlightResultSkeleton />

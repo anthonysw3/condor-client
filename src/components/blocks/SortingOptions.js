@@ -93,7 +93,7 @@ export default function SortingOptions({
   return (
     <Container
       style={{
-        marginTop: theme.sizing.scale700,
+        marginTop: theme.sizing.scale500,
         padding: theme.sizing.scale300,
         backgroundColor: theme.colors.backgroundPrimary,
         borderRadius: theme.borders.radius500,

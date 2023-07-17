@@ -32,6 +32,7 @@ export default function EditBlock({
   children,
   infants,
   travelClass,
+  refreshFlightOffers,
 }) {
   const [css, theme] = useStyletron();
   const { openLayer, closeLayer } = useLayer();
@@ -40,7 +41,6 @@ export default function EditBlock({
   const handleEditDrawer = () => {
     const title = `Edit your trip`;
     const content = <FlightSearch />;
-
     openLayer(title, content);
   };
 
@@ -49,12 +49,13 @@ export default function EditBlock({
     const callbacks = {
       onChange: (selectedDates) => {
         dispatch(setDates(selectedDates));
-        closeModal();
+      },
+      onClose: () => {
+        closeLayer(() => refreshFlightOffers());
       },
     };
     const content = <Calendar onChange={callbacks.onChange} />;
     const footer = <CalendarFooter />;
-
     openLayer(title, content, footer, callbacks);
   };
 
@@ -62,12 +63,10 @@ export default function EditBlock({
     const title = "Who's travelling?";
     const callbacks = {
       onClose: async () => {
-        closeModal();
-        await refreshFlightOffers();
+        closeLayer();
       },
     };
     const content = <Passengers onChange={callbacks.onChange} />;
-
     openLayer(title, content, null, callbacks);
   };
 

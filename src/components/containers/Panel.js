@@ -9,7 +9,7 @@ export const Panel = ({ children }) => {
       overrides={{
         Block: {
           style: ({ $theme }) => ({
-            marginTop: $theme.sizing.scale700,
+            marginTop: $theme.sizing.scale500,
             marginBottom: $theme.sizing.scale700,
             padding: `${$theme.sizing.scale700}`,
             backgroundColor: `${$theme.colors.backgroundPrimary}`,
