@@ -1,14 +1,20 @@
 import React, {
   createContext,
   useState,
-  useEffect,
+  useMemo,
   useContext,
   useRef,
 } from "react";
 import { useSelector } from "react-redux";
 import { fetchFlightOffers } from "../services/flights/duffelApi";
 
-const FlightsContext = createContext();
+export const FlightsContext = createContext({
+  filters: {
+    stops: { direct: true, oneStop: true, twoPlus: true },
+    // other filters...
+  },
+  updateFilter: () => {},
+});
 
 export function FlightsProvider({ children }) {
   const [isLoading, setIsLoading] = useState(true);
@@ -17,6 +23,14 @@ export function FlightsProvider({ children }) {
   const [offersByBest, setOffersByBest] = useState([]);
   const [offersByPrice, setOffersByPrice] = useState([]);
   const [offersByDuration, setOffersByDuration] = useState([]);
+  const [filters, setFilters] = useState({
+    stops: [0, 1, 2], // All options selected by default
+    // other filters...
+  });
+
+  console.log("FlightsProvider - filters:", filters);
+
+  const [sortingMethod, setSortingMethod] = useState("best");
   const [hasReceivedFirstPage, setHasReceivedFirstPage] = useState(false);
   const {
     origin,
@@ -156,6 +170,51 @@ export function FlightsProvider({ children }) {
     );
   };
 
+  const filterOffers = (offers) => {
+    return offers.filter((offer) => {
+      // Filtering by stops
+      const totalStops = calculateStops(offer);
+      if (!filters.stops.includes(totalStops)) return false;
+
+      // Add more filter conditions here...
+
+      return true;
+    });
+  };
+
+  const updateFilter = (filterName, filterValue) => {
+    setFilters((prevFilters) => ({
+      ...prevFilters,
+      [filterName]: filterValue,
+    }));
+  };
+
+  const getFilteredAndSortedOffers = (offers, filters, sortingMethod) => {
+    // Apply filters
+    const filteredOffers = offers.filter((offer) => {
+      const totalStops = calculateStops(offer); // Rename "stops" to "totalStops"
+      return filters.stops.includes(totalStops);
+    });
+
+    // Determine the sorting function based on the sortingMethod string
+    let sortFunction;
+    switch (
+      sortingMethod
+      // ... cases ...
+    ) {
+    }
+
+    // Apply sorting
+    const sortedOffers = filteredOffers.sort(sortFunction);
+
+    return sortedOffers;
+  };
+
+  // Use the getFilteredAndSortedOffers function to get the filtered and sorted offers
+  const sortedOffers = useMemo(() => {
+    return getFilteredAndSortedOffers(offers, filters, sortingMethod);
+  }, [offers, filters, sortingMethod]);
+
   const fetchFlightOffersPage = async (after) => {
     try {
       const flightOffers = await fetchFlightOffers({
@@ -175,19 +234,17 @@ export function FlightsProvider({ children }) {
       const newAfter = results.meta.after || null;
 
       const uniqueNewOffers = newOffers.filter((offer) => {
-        const flightIdentifier = `${offer.owner.name}-${offer.total_amount}`;
-
-        if (uniqueFlights.current.has(flightIdentifier)) {
-          return false;
-        }
-
-        uniqueFlights.current.add(flightIdentifier);
-        return true;
+        return offer.owner.iata_code !== "ZZ";
       });
 
-      const newOffersSortedByBest = [...uniqueNewOffers].sort(sortByBest);
-      const newOffersSortedByPrice = [...uniqueNewOffers].sort(sortByPrice);
-      const newOffersSortedByDuration = [...uniqueNewOffers].sort(
+      const filteredOffers = uniqueNewOffers.filter((offer) => {
+        const stops = calculateStops(offer);
+        return filters.stops.includes(stops);
+      });
+
+      const newOffersSortedByBest = [...filteredOffers].sort(sortByBest);
+      const newOffersSortedByPrice = [...filteredOffers].sort(sortByPrice);
+      const newOffersSortedByDuration = [...filteredOffers].sort(
         sortByDuration
       );
 
@@ -201,7 +258,7 @@ export function FlightsProvider({ children }) {
         mergeSortedArrays(prevOffers, newOffersSortedByDuration, sortByDuration)
       );
 
-      setOffers((prevOffers) => [...prevOffers, ...uniqueNewOffers]);
+      setOffers((prevOffers) => [...prevOffers, ...filteredOffers]); // Use filtered offers here
       setAfter(newAfter);
 
       if (!newAfter && !hasReceivedFirstPage) {
@@ -214,6 +271,16 @@ export function FlightsProvider({ children }) {
     }
   };
 
+  const clearFlightSearchData = () => {
+    setAfter(null);
+    setIsLoading(true);
+    setOffers([]);
+    setOffersByBest([]);
+    setOffersByPrice([]);
+    setOffersByDuration([]);
+    setHasReceivedFirstPage(false);
+  };
+
   return (
     <FlightsContext.Provider
       value={{
@@ -222,9 +289,13 @@ export function FlightsProvider({ children }) {
         offersByBest,
         offersByPrice,
         offersByDuration,
+        sortedOffers,
         fetchFlightOffersPage,
         setAfter,
         setHasReceivedFirstPage,
+        clearFlightSearchData,
+        updateFilter,
+        filters,
       }}
     >
       {children}

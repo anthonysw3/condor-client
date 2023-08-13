@@ -25,6 +25,7 @@ import { IconSearch } from "@tabler/icons-react";
 
 // Layer
 import { useLayer } from "../../contexts/LayerProvider";
+import { useFlights } from "@/contexts/FlightsProvider";
 
 // Store
 import { useDispatch, useSelector } from "react-redux";
@@ -41,6 +42,7 @@ import { getTotalPassengers } from "../utils/helpers/passengerUtils";
 export default function FlightSearch() {
   // Provider Functions
   const { openLayer, closeLayer } = useLayer();
+  const { clearFlightSearchData } = useFlights();
   const router = useRouter();
 
   // Values
@@ -125,6 +127,7 @@ export default function FlightSearch() {
 
   const handleSubmit = (e) => {
     e.preventDefault();
+    clearFlightSearchData();
     router.push("/flights/results");
   };
 
@@ -163,26 +166,26 @@ export default function FlightSearch() {
         <Cell span={[4, 2, 4]}>
           <InputText
             label="From"
-            value={`${origin?.airport}${
-              origin?.iata ? ` (${origin?.iata})` : ""
+            value={`${origin?.name}${
+              origin?.name ? ` (${origin?.iata_code})` : ""
             }`}
             placeholder="City or airport"
-            subText={`${origin?.name}, ${origin?.country}`}
+            subText={`${origin?.city_name ? origin?.city_name : origin?.name}`}
             onClick={handleOriginLayer}
           />
         </Cell>
         <Cell span={[4, 2, 4]}>
           <InputText
             label="To"
-            value={`${destination?.airport}${
-              destination?.iata ? ` (${destination?.iata})` : ""
+            value={`${destination?.name}${
+              destination?.name ? ` (${destination?.iata_code})` : ""
             }`}
             placeholder="City or airport"
-            subText={
-              destination?.name
-                ? `${destination?.name}, ${destination?.country}`
-                : "Any worldwide airport"
-            }
+            subText={`${
+              destination?.city_name
+                ? destination?.city_name
+                : destination?.name
+            }`}
             onClick={handleDestinationLayer}
           />
         </Cell>

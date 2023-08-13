@@ -6,13 +6,13 @@ const flight = () => {
       airport: "London Heathrow",
       name: "London",
       country: "United Kingdom",
-      iata: "LHR",
+      iata_code: "LHR",
     },
     destination: {
       airport: "",
       name: "",
       country: "",
-      iata: "",
+      iata_code: "",
     },
     dates: {
       outbound: null,

@@ -34,14 +34,14 @@ export const fetchFlightOffers = async ({
       },
       body: JSON.stringify({
         outbound: {
-          origin: origin.iata,
-          destination: destination.iata,
+          origin: origin.iata_code,
+          destination: destination.iata_code,
           date: outbound,
         },
         returnJourney: inbound
           ? {
-              origin: destination.iata,
-              destination: origin.iata,
+              origin: destination.iata_code,
+              destination: origin.iata_code,
               date: inbound,
             }
           : null,

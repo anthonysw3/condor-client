@@ -1,4 +1,4 @@
-import React, { useState } from "react";
+import React, { useState, useContext } from "react";
 
 // Grid
 import { Row, Col } from "react-grid-system";
@@ -13,16 +13,31 @@ import { List } from "../primitives/list";
 import HourSlider from "../primitives/HourSlider";
 import DurationSlider from "../primitives/DurationSlider";
 
+// Flight Provider
+import { useFlights } from "../../contexts/FlightsProvider";
+
 export default function Filters() {
-  const [direct, setDirect] = useState(true);
-  const [oneStop, setOneStop] = useState(true);
-  const [twoPlus, setTwoPlus] = useState(true);
   const [frequentFlyer, setFrequentFlyer] = useState(false);
   const [statusAirlines, setStatusAirlines] = useState(false);
   const [departReturn, setDepartReturn] = useState(false);
   const [oneWorld, setOneWorld] = useState(true);
   const [starAlliance, setStarAlliance] = useState(true);
   const [skyTeam, setSkyTeam] = useState(true);
+
+  const { filters, updateFilter } = useFlights();
+  const stops = filters.stops || defaultStops; // defaultStops should be defined as [0, 1, 2]
+
+  const updateStopsFilter = (stopValue, isChecked) => {
+    if (isChecked) {
+      updateFilter("stops", [...filters.stops, stopValue]);
+    } else {
+      updateFilter(
+        "stops",
+        filters.stops.filter((stop) => stop !== stopValue)
+      );
+    }
+  };
+
   return (
     <Row>
       <Col xs={12}>
@@ -68,32 +83,21 @@ export default function Filters() {
             }
           />
         </Block>
-        <Block
-          overrides={{
-            Block: {
-              style: ({ $theme }) => ({
-                marginBottom: $theme.sizing.scale600,
-              }),
-            },
-          }}
-        >
-          <LabelMedium
-            overrides={{
-              Block: {
-                style: ({ $theme }) => ({
-                  marginBottom: $theme.sizing.scale600,
-                  fontWeight: "bold",
-                }),
-              },
-            }}
-          >
-            Stops
-          </LabelMedium>
+        <Block>
           <List
             label={
               <Checkbox
-                checked={direct}
-                onChange={(e) => setDirect(e.target.checked)}
+                checked={filters.stops.includes(0)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    updateFilter("stops", [...filters.stops, 0]);
+                  } else {
+                    updateFilter(
+                      "stops",
+                      filters.stops.filter((stop) => stop !== 0)
+                    );
+                  }
+                }}
                 labelPlacement={LABEL_PLACEMENT.right}
               >
                 Direct
@@ -104,8 +108,17 @@ export default function Filters() {
           <List
             label={
               <Checkbox
-                checked={oneStop}
-                onChange={(e) => setOneStop(e.target.checked)}
+                checked={filters.stops.includes(1)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    updateFilter("stops", [...filters.stops, 1]);
+                  } else {
+                    updateFilter(
+                      "stops",
+                      filters.stops.filter((stop) => stop !== 1)
+                    );
+                  }
+                }}
                 labelPlacement={LABEL_PLACEMENT.right}
               >
                 1 stop
@@ -116,8 +129,17 @@ export default function Filters() {
           <List
             label={
               <Checkbox
-                checked={twoPlus}
-                onChange={(e) => setTwoPlus(e.target.checked)}
+                checked={filters.stops.includes(2)}
+                onChange={(e) => {
+                  if (e.target.checked) {
+                    updateFilter("stops", [...filters.stops, 2]);
+                  } else {
+                    updateFilter(
+                      "stops",
+                      filters.stops.filter((stop) => stop !== 2)
+                    );
+                  }
+                }}
                 labelPlacement={LABEL_PLACEMENT.right}
               >
                 2+ stops
@@ -126,6 +148,7 @@ export default function Filters() {
             listEnd={<LabelXSmall>from £1123</LabelXSmall>}
           />
         </Block>
+
         <Block
           overrides={{
             Block: {

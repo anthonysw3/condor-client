@@ -2,10 +2,9 @@
 
 import React, { useEffect, useState } from "react";
 
-import { createClient } from "@sanity/client";
-
 import { Block } from "baseui/block";
 import { Button, KIND, SIZE } from "baseui/button";
+import { LabelSmall } from "baseui/typography";
 
 // Icons
 import { IconAdjustmentsHorizontal } from "@tabler/icons-react";
@@ -24,7 +23,7 @@ import EditBlock from "@/components/blocks/EditBlock";
 import FlightResult from "@/components/blocks/FlightResult";
 import { FlightResultSkeleton } from "@/components/containers/Skeletons";
 import SortingOptions from "@/components/blocks/SortingOptions";
-import SearchingText from "@/components/blocks/SearchingText";
+import Searching from "@/components/blocks/Searching";
 import Filters from "@/components/blocks/Filters";
 
 import useIntersectionObserver from "@/components/utils/helpers/useIntersectionObserver";
@@ -41,6 +40,7 @@ export default function FlightResults() {
     offersByPrice,
     offersByDuration,
     offers,
+    filters,
   } = useFlights();
 
   const {
@@ -70,32 +70,6 @@ export default function FlightResults() {
     setHasReceivedFirstPage,
   ]);
 
-  const client = createClient({
-    projectId: "6d2pzg6a",
-    dataset: "production",
-    useCdn: true,
-  });
-
-  const [airlineCount, setAirlineCount] = useState(null);
-
-  const fetchAirlineCount = async () => {
-    try {
-      const response = await client.fetch('*[_type == "airline"]');
-      const count = response.length;
-      setAirlineCount(count);
-    } catch (error) {
-      console.error("Error:", error);
-    }
-  };
-
-  useEffect(() => {
-    fetchAirlineCount();
-  }, []);
-
-  useEffect(() => {
-    fetchAirlineCount();
-  }, []);
-
   const [sortingMethod, setSortingMethod] = useState("best");
 
   const [numItemsDisplayed, setNumItemsDisplayed] = useState(20);
@@ -114,8 +88,6 @@ export default function FlightResults() {
 
   const lastItemRef = useIntersectionObserver(handleLastItemVisible);
 
-  const totalResults = offers?.length;
-
   const { openLayer, closeLayer } = useLayer();
 
   // Handlers
@@ -126,10 +98,11 @@ export default function FlightResults() {
     openLayer(title, content, null);
   };
 
-  const refreshFlightOffers = async () => {
-    setIsLoading(true);
-    await fetchFlightOffersPage(after);
-  };
+  console.log("Filtered Offers (Best):", offersByBest);
+  console.log("Filtered Offers (Price):", offersByPrice);
+  console.log("Filtered Offers (Duration):", offersByDuration);
+
+  const totalResults = sortedOffers.length;
 
   return (
     <main>
@@ -144,7 +117,6 @@ export default function FlightResults() {
             adults={adults}
             children={children}
             infants={infants}
-            refreshFlightOffers={refreshFlightOffers}
           />
           <SortingOptions
             setSortingMethod={setSortingMethod}
@@ -167,10 +139,17 @@ export default function FlightResults() {
             }}
           >
             <Block>
-              <SearchingText
-                totalResults={totalResults ? totalResults : null}
-                airlines={airlineCount}
-              />
+              <LabelSmall
+                overrides={{
+                  Block: {
+                    style: ({ $theme }) => ({
+                      marginTop: $theme.sizing.scale400,
+                    }),
+                  },
+                }}
+              >
+                <Searching totalResults={totalResults} />
+              </LabelSmall>
             </Block>
             <Block>
               <Button

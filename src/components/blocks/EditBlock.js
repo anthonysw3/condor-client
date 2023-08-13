@@ -6,6 +6,7 @@ import { HeadingXSmall } from "baseui/typography";
 import { Button, SIZE, KIND } from "baseui/button";
 
 import { useLayer } from "@/contexts/LayerProvider";
+import { useFlights } from "@/contexts/FlightsProvider";
 
 // Icons
 import {
@@ -32,10 +33,10 @@ export default function EditBlock({
   children,
   infants,
   travelClass,
-  refreshFlightOffers,
 }) {
   const [css, theme] = useStyletron();
   const { openLayer, closeLayer } = useLayer();
+  const { clearFlightSearchData, fetchFlightOffersPage } = useFlights();
 
   // Handlers
   const handleEditDrawer = () => {
@@ -48,10 +49,12 @@ export default function EditBlock({
     const title = "Choose your dates";
     const callbacks = {
       onChange: (selectedDates) => {
-        dispatch(setDates(selectedDates));
+        clearFlightSearchData();
       },
       onClose: () => {
-        closeLayer(() => refreshFlightOffers());
+        dispatch(setDates(selectedDates));
+        fetchFlightOffersPage();
+        closeLayer();
       },
     };
     const content = <Calendar onChange={callbacks.onChange} />;
@@ -95,7 +98,7 @@ export default function EditBlock({
             },
           }}
         >
-          {origin.name}
+          {origin.city_name ? origin.city_name : origin.name}
           <Block
             overrides={{
               Block: {
@@ -114,7 +117,7 @@ export default function EditBlock({
               <IconArrowRight size={20} />
             )}
           </Block>
-          {destination.name}
+          {destination.city_name ? destination.city_name : destination.name}
         </HeadingXSmall>
         <Block
           overrides={{

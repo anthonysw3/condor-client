@@ -9,6 +9,7 @@ export default function Home() {
   return (
     <main>
       <SearchTabs />
+      <p>World clock</p>
     </main>
   );
 }

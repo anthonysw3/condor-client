@@ -1,34 +1,22 @@
 import React, { useState, useEffect, useRef } from "react";
-
-// Redux
-import { useDispatch, useSelector } from "react-redux";
-import { addProgram, removeProgram } from "../utils/store/slices/statusSlice";
-
-// Base Web
 import { Block } from "baseui/block";
-import { Button, KIND, SIZE, SHAPE } from "baseui/button";
-import { ParagraphMedium } from "baseui/typography";
-
-// Icons
-import { IconX } from "@tabler/icons-react";
-
-// Condor Components
+import { Badge, HIERARCHY, COLOR } from "baseui/badge";
+import {
+  IconCurrentLocation,
+  IconPlaneTilt,
+  IconBuildingSkyscraper,
+} from "@tabler/icons-react";
 import { InputText } from "../primitives/input";
 import { List } from "../primitives/list";
 
-// Fuse
-import Fuse from "fuse.js";
-
-// Airlines Data
-import { airlineData } from "../utils/data/airlines";
-
-export default function Status() {
-  const dispatch = useDispatch();
+const Status = ({ onChange, isOpen, mode }) => {
   const [airlineSearch, setAirlineSearch] = useState("");
-  const [isOpen, setIsOpen] = useState(false);
   const [filteredAirlines, setFilteredAirlines] = useState([]);
   const inputRef = useRef(null);
-  const selectedAirlines = useSelector((state) => state.status);
+
+  const handleAirlineChange = (event) => {
+    setAirlineSearch(event.target.value);
+  };
 
   useEffect(() => {
     if (isOpen) {
@@ -37,135 +25,70 @@ export default function Status() {
   }, [isOpen]);
 
   useEffect(() => {
-    const fuse = new Fuse(airlineData, {
-      keys: ["name", "iata"],
-      threshold: 0.3,
-    });
+    // Debounce the search operation
+    const delaySearch = setTimeout(() => {
+      if (airlineSearch.length >= 2) {
+        fetch(`http://192.168.0.227:5000/api/airlines?q=${airlineSearch}`)
+          .then((response) => response.json())
+          .then((data) => filteredAirlines(data));
+      } else {
+        filteredAirlines([]);
+      }
+    }, 300);
 
-    const searchResults = fuse.search(airlineSearch.toLowerCase());
-    setFilteredAirlines(searchResults.map((result) => result.item));
+    // Cleanup the timeout on each input change
+    return () => clearTimeout(delaySearch);
   }, [airlineSearch]);
 
-  const handleAirlineChange = (event) => {
-    setAirlineSearch(event.target.value);
-  };
-
   const handleAirlineClick = (selectedAirline) => {
-    console.log(selectedAirline);
-    dispatch(addProgram(selectedAirline));
     setAirlineSearch("");
-  };
-
-  const handleRemoveAirline = (index) => {
-    dispatch(removeProgram(selectedAirlines[index]));
+    onChange(selectedAirline);
   };
 
   return (
     <Block>
       <InputText
-        label="Airline"
+        label="Search airlines"
         onChange={handleAirlineChange}
-        placeholder="Search for an airline"
-        inputRef={inputRef}
+        placeholder="Airline or reward scheme"
+        ref={inputRef}
+        autoFocus
       />
       {airlineSearch && filteredAirlines.length > 0 ? (
         <Block>
           {filteredAirlines.map((airline) => (
-            <Block
-              key={airline.name}
-              overrides={{
-                Block: {
-                  style: ({ $theme }) => ({
-                    marginTop: $theme.sizing.scale700,
-                  }),
-                },
-              }}
-            >
-              <List
-                icon={
-                  <Block
-                    as="img"
-                    src={airline.logo}
-                    alt={airline.name}
-                    width="30px"
-                    height="30px"
-                  />
-                }
-                label={airline.name}
-                description={airline.program.name}
-                listEnd={
-                  <Button
-                    kind={KIND.secondary}
-                    size={SIZE.mini}
-                    shape={SHAPE.pill}
-                    onClick={() => handleAirlineClick(airline)}
-                  >
-                    Add
-                  </Button>
-                }
-              />
-            </Block>
+            <List
+              key={airline.iata}
+              label={airline.name}
+              description={airline.loyalty}
+              onClick={() => handleAirlineClick(airline)}
+              icon={
+                location.type === "place" ? (
+                  <IconBuildingSkyscraper size={20} />
+                ) : (
+                  <IconPlaneTilt size={20} />
+                )
+              }
+              listEnd={
+                <Badge
+                  content="Add"
+                  hierarchy={HIERARCHY.secondary}
+                  color={COLOR.primary}
+                />
+              }
+            />
           ))}
         </Block>
       ) : (
-        <Block
-          overrides={{
-            Block: {
-              style: ({ $theme }) => ({
-                marginTop: $theme.sizing.scale700,
-              }),
-            },
-          }}
-        >
-          {selectedAirlines && selectedAirlines.length > 0 ? (
-            selectedAirlines.map((airline, index) => (
-              <List
-                key={index}
-                icon={
-                  <Block
-                    as="img"
-                    src={airline.logo}
-                    alt={airline.name}
-                    width="30px"
-                    height="30px"
-                    overrides={{
-                      Block: {
-                        style: ({ $theme }) => ({
-                          borderRadius: $theme.borders.radius300,
-                        }),
-                      },
-                    }}
-                  />
-                }
-                label={airline.name}
-                description={airline.program.name}
-                listEnd={
-                  <Button
-                    kind={KIND.secondary}
-                    size={SIZE.mini}
-                    shape={SHAPE.circle}
-                    onClick={() => handleRemoveAirline(index)}
-                  >
-                    <IconX size={12} />
-                  </Button>
-                }
-              />
-            ))
-          ) : (
-            <ParagraphMedium
-              overrides={{
-                Block: {
-                  style: ({ $theme }) => ({
-                    marginLeft: $theme.sizing.scale300,
-                  }),
-                },
-              }}
-            >
-              No airline programs added
-            </ParagraphMedium>
-          )}
+        <Block>
+          <List
+            icon={<IconCurrentLocation size={20} />}
+            label="British Airways"
+          />
         </Block>
       )}
     </Block>
   );
-}
+};
+
+export default Status;

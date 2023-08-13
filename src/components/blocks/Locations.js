@@ -88,9 +88,11 @@ const Locations = ({ onChange, isOpen, mode }) => {
         <Block>
           {filteredLoc.map((location) => (
             <List
-              key={location.iata}
-              label={location.airport}
-              description={`${location.name}, ${location.country}`}
+              key={location.iata_code}
+              label={location.name}
+              description={`${
+                location.city_name ? location.city_name : location.name
+              }, ${location.iata_country_code}`}
               onClick={() => handleLocationClick(location)}
               icon={
                 location.type === "place" ? (
@@ -101,7 +103,7 @@ const Locations = ({ onChange, isOpen, mode }) => {
               }
               listEnd={
                 <Badge
-                  content={location.iata}
+                  content={location.iata_code}
                   hierarchy={HIERARCHY.secondary}
                   color={COLOR.primary}
                 />
