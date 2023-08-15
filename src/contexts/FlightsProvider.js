@@ -4,9 +4,15 @@ import React, {
   useMemo,
   useContext,
   useRef,
+  useCallback,
+  useEffect,
 } from "react";
+import { useRouter, usePathname, useSearchParams } from "next/navigation";
 import { useSelector } from "react-redux";
-import { fetchFlightOffers } from "../services/flights/duffelApi";
+import {
+  fetchFlightOffers,
+  createCancelToken,
+} from "../services/flights/duffelApi";
 
 export const FlightsContext = createContext({
   filters: {
@@ -27,6 +33,11 @@ export function FlightsProvider({ children }) {
     stops: [0, 1, 2], // All options selected by default
     // other filters...
   });
+
+  const cancelTokenSource = useRef(null);
+
+  const fetchAttempts = useRef(0);
+  const fetchTimeout = useRef(null);
 
   console.log("FlightsProvider - filters:", filters);
 
@@ -170,24 +181,12 @@ export function FlightsProvider({ children }) {
     );
   };
 
-  const filterOffers = (offers) => {
-    return offers.filter((offer) => {
-      // Filtering by stops
-      const totalStops = calculateStops(offer);
-      if (!filters.stops.includes(totalStops)) return false;
-
-      // Add more filter conditions here...
-
-      return true;
-    });
-  };
-
-  const updateFilter = (filterName, filterValue) => {
-    setFilters((prevFilters) => ({
-      ...prevFilters,
-      [filterName]: filterValue,
+  const updateFilter = useCallback((name, value) => {
+    setFilters((prev) => ({
+      ...prev,
+      [name]: value,
     }));
-  };
+  }, []);
 
   const getFilteredAndSortedOffers = (offers, filters, sortingMethod) => {
     // Apply filters
@@ -196,12 +195,20 @@ export function FlightsProvider({ children }) {
       return filters.stops.includes(totalStops);
     });
 
-    // Determine the sorting function based on the sortingMethod string
     let sortFunction;
-    switch (
-      sortingMethod
-      // ... cases ...
-    ) {
+    switch (sortingMethod) {
+      case "best":
+        sortFunction = sortByBest;
+        break;
+      case "price":
+        sortFunction = sortByPrice;
+        break;
+      case "duration":
+        sortFunction = sortByDuration;
+        break;
+      default:
+        console.warn(`Unknown sorting method: ${sortingMethod}`);
+        sortFunction = sortByBest; // Default to best if unknown method is provided
     }
 
     // Apply sorting
@@ -215,89 +222,210 @@ export function FlightsProvider({ children }) {
     return getFilteredAndSortedOffers(offers, filters, sortingMethod);
   }, [offers, filters, sortingMethod]);
 
-  const fetchFlightOffersPage = async (after) => {
-    try {
-      const flightOffers = await fetchFlightOffers({
-        origin,
-        destination,
-        outbound,
-        inbound,
-        travelClass,
-        adults,
-        kids,
-        infants,
-        after,
-      });
+  const isSimilarOffer = (newOffer, existingOffers) => {
+    return existingOffers.some((existingOffer) => {
+      // Check total_amount
+      const sameTotalAmount =
+        newOffer.total_amount === existingOffer.total_amount;
 
-      const { results } = flightOffers;
-      const newOffers = results.data || [];
-      const newAfter = results.meta.after || null;
+      // Check the owner's iata_code
+      const sameIataCode =
+        newOffer.owner.iata_code === existingOffer.owner.iata_code;
 
-      const uniqueNewOffers = newOffers.filter((offer) => {
-        return offer.owner.iata_code !== "ZZ";
-      });
+      // Check durations of the first and last segments of each slice
+      const hasSameSegmentDurations = newOffer.slices.every(
+        (slice, sliceIndex) => {
+          if (existingOffer.slices[sliceIndex]) {
+            const newFirstSegmentDuration = slice.segments[0].duration;
+            const newLastSegmentDuration =
+              slice.segments[slice.segments.length - 1].duration;
 
-      const filteredOffers = uniqueNewOffers.filter((offer) => {
-        const stops = calculateStops(offer);
-        return filters.stops.includes(stops);
-      });
+            const existingFirstSegmentDuration =
+              existingOffer.slices[sliceIndex].segments[0].duration;
+            const existingLastSegmentDuration =
+              existingOffer.slices[sliceIndex].segments[
+                existingOffer.slices[sliceIndex].segments.length - 1
+              ].duration;
 
-      const newOffersSortedByBest = [...filteredOffers].sort(sortByBest);
-      const newOffersSortedByPrice = [...filteredOffers].sort(sortByPrice);
-      const newOffersSortedByDuration = [...filteredOffers].sort(
-        sortByDuration
+            return (
+              newFirstSegmentDuration === existingFirstSegmentDuration &&
+              newLastSegmentDuration === existingLastSegmentDuration
+            );
+          }
+          return false; // If there's no matching slice index in the existing offer, they're not the same
+        }
       );
 
-      setOffersByBest((prevOffers) =>
-        mergeSortedArrays(prevOffers, newOffersSortedByBest, sortByBest)
-      );
-      setOffersByPrice((prevOffers) =>
-        mergeSortedArrays(prevOffers, newOffersSortedByPrice, sortByPrice)
-      );
-      setOffersByDuration((prevOffers) =>
-        mergeSortedArrays(prevOffers, newOffersSortedByDuration, sortByDuration)
-      );
-
-      setOffers((prevOffers) => [...prevOffers, ...filteredOffers]); // Use filtered offers here
-      setAfter(newAfter);
-
-      if (!newAfter && !hasReceivedFirstPage) {
-        setHasReceivedFirstPage(true);
-        setIsLoading(false);
-        console.log("Loading state set to false");
+      const isSimilar =
+        sameTotalAmount && sameIataCode && hasSameSegmentDurations;
+      if (isSimilar) {
+        console.log("Similar Offers:", newOffer, existingOffer);
       }
-    } catch (error) {
-      console.error("Error:", error);
-    }
+
+      return isSimilar;
+    });
   };
 
-  const clearFlightSearchData = () => {
-    setAfter(null);
-    setIsLoading(true);
+  const isMounted = useRef(true);
+  const router = useRouter();
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
+
+  const fetchFlightOffersPage = useCallback(
+    async (after) => {
+      if (fetchAttempts.current >= 10) {
+        console.log("Max fetch attempts reached. Stopping further requests.");
+        return;
+      }
+      try {
+        const flightOffers = await fetchFlightOffers({
+          origin,
+          destination,
+          outbound,
+          inbound,
+          travelClass,
+          adults,
+          kids,
+          infants,
+          after,
+        });
+
+        const { results } = flightOffers;
+        const newOffers = results.data || [];
+        const newAfter = results.meta.after || null;
+
+        console.log("Starting filtering for new offers...");
+
+        // Filter out offers with "ZZ" iata_code and offers that already exist in the state
+        const uniqueNewOffers = newOffers.filter((offer) => {
+          return offer.owner.iata_code !== "ZZ";
+        });
+
+        const filteredNewOffers = uniqueNewOffers.filter((newOffer) => {
+          return !isSimilarOffer(newOffer, offers); // This checks if the new offer is not similar to any of the existing offers.
+        });
+
+        const newOffersSortedByBest = [...filteredNewOffers].sort(sortByBest);
+        const newOffersSortedByPrice = [...filteredNewOffers].sort(sortByPrice);
+        const newOffersSortedByDuration = [...filteredNewOffers].sort(
+          sortByDuration
+        );
+
+        setOffersByBest((prevOffers) =>
+          mergeSortedArrays(prevOffers, newOffersSortedByBest, sortByBest)
+        );
+        setOffersByPrice((prevOffers) =>
+          mergeSortedArrays(prevOffers, newOffersSortedByPrice, sortByPrice)
+        );
+        setOffersByDuration((prevOffers) =>
+          mergeSortedArrays(
+            prevOffers,
+            newOffersSortedByDuration,
+            sortByDuration
+          )
+        );
+
+        setOffers((prevOffers) => [...prevOffers, ...filteredNewOffers]); // Use filtered offers here
+        setAfter(newAfter);
+
+        if (!newAfter && !hasReceivedFirstPage) {
+          setHasReceivedFirstPage(true);
+          setIsLoading(false);
+          console.log("Loading state set to false");
+        }
+
+        if (newAfter && isMounted.current) {
+          fetchTimeout.current = setTimeout(() => {
+            fetchFlightOffersPage(newAfter);
+          }, 1200);
+        }
+      } catch (error) {
+        console.error("Error:", error);
+      }
+      fetchAttempts.current += 1;
+    },
+    [offers, filters, fetchFlightOffers]
+  );
+
+  const clearFlightSearchData = useCallback(() => {
     setOffers([]);
     setOffersByBest([]);
     setOffersByPrice([]);
     setOffersByDuration([]);
-    setHasReceivedFirstPage(false);
+    setAfter(null);
+  }, []);
+
+  // Reference to track initial render
+  const initialRender = useRef(true);
+
+  const handleRouteChange = () => {
+    console.log("Cleaning up FlightsProvider...");
+    if (cancelTokenSource.current) {
+      cancelTokenSource.current.cancel();
+      cancelTokenSource.current = createCancelToken();
+    }
+    if (fetchTimeout.current) {
+      clearTimeout(fetchTimeout.current);
+    }
+    fetchAttempts.current = 0; // Reset the fetch attempts
+    isMounted.current = true; // Reset the isMounted ref to true for a new search
+    setHasReceivedFirstPage(false); // Reset this state
   };
 
+  useEffect(() => {
+    if (initialRender.current) {
+      // If it's the initial render, just mark it as done and return
+      initialRender.current = false;
+      return;
+    }
+    if (cancelTokenSource.current) {
+      cancelTokenSource.current.cancel();
+    }
+  }, [router.route]);
+
+  useEffect(() => {
+    handleRouteChange();
+  }, [pathname, searchParams]);
+
+  const flightContextValue = useMemo(
+    () => ({
+      isLoading,
+      hasReceivedFirstPage,
+      offers,
+      offersByBest,
+      offersByPrice,
+      offersByDuration,
+      fetchFlightOffers,
+      fetchFlightOffersPage,
+      setIsLoading,
+      setHasReceivedFirstPage,
+      setOffers,
+      setOffersByBest,
+      setOffersByPrice,
+      setOffersByDuration,
+      clearFlightSearchData,
+      fetchAttempts,
+      after,
+      isSimilarOffer,
+    }),
+    [
+      isLoading,
+      setIsLoading,
+      offersByBest,
+      offersByPrice,
+      offersByDuration,
+      sortedOffers,
+      fetchFlightOffersPage,
+      setAfter,
+      setHasReceivedFirstPage,
+      clearFlightSearchData,
+      updateFilter,
+      filters,
+    ]
+  );
+
   return (
-    <FlightsContext.Provider
-      value={{
-        isLoading,
-        setIsLoading,
-        offersByBest,
-        offersByPrice,
-        offersByDuration,
-        sortedOffers,
-        fetchFlightOffersPage,
-        setAfter,
-        setHasReceivedFirstPage,
-        clearFlightSearchData,
-        updateFilter,
-        filters,
-      }}
-    >
+    <FlightsContext.Provider value={flightContextValue}>
       {children}
     </FlightsContext.Provider>
   );

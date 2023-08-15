@@ -1,10 +1,12 @@
 "use client";
 
-import React, { useEffect, useState } from "react";
+import React, { useEffect, useState, useRef } from "react";
+import { usePathname, useSearchParams } from "next/navigation";
 
 import { Block } from "baseui/block";
 import { Button, KIND, SIZE } from "baseui/button";
 import { LabelSmall } from "baseui/typography";
+import { ProgressBar } from "baseui/progress-bar";
 
 // Icons
 import { IconAdjustmentsHorizontal } from "@tabler/icons-react";
@@ -40,7 +42,8 @@ export default function FlightResults() {
     offersByPrice,
     offersByDuration,
     offers,
-    filters,
+    fetchAttempts,
+    isSimilarOffer,
   } = useFlights();
 
   const {
@@ -51,28 +54,47 @@ export default function FlightResults() {
     passengers: { adults, children, infants },
   } = useSelector((state) => state.flight);
 
-  useEffect(() => {
-    const fetchData = async () => {
-      await fetchFlightOffersPage(after);
+  const pathname = usePathname();
+  const searchParams = useSearchParams();
 
-      if (!after && !hasReceivedFirstPage) {
+  useEffect(() => {
+    // If the current path matches the path of the FlightResults page, reset the isLoading state
+    if (pathname === "/flights/results") {
+      setIsLoading(true);
+      // You can also initiate any other actions here if needed
+    }
+  }, [pathname, searchParams]);
+
+  useEffect(() => {
+    console.log("Effect with dependency [fetchData] is running");
+    const fetchData = async () => {
+      await fetchFlightOffersPage(null); // Initial fetch without the 'after' value
+
+      if (!hasReceivedFirstPage) {
         setHasReceivedFirstPage(true);
-        setIsLoading(false);
-        console.log("Loading state set to false");
+        setIsLoading(false); // Ensure isLoading is set to false here
+        console.log("Loading state set to display initial data");
       }
     };
 
     fetchData();
-  }, [
-    after,
-    fetchFlightOffersPage,
-    hasReceivedFirstPage,
-    setHasReceivedFirstPage,
-  ]);
+  }, []); // This useEffect runs only once on mount
+
+  const fetchedAfterValues = useRef(new Set());
+
+  useEffect(() => {
+    console.log("Effect with dependency [fetchFlightOffersPage] is running");
+    if (after && !fetchedAfterValues.current.has(after)) {
+      fetchFlightOffersPage(after);
+      fetchedAfterValues.current.add(after);
+    }
+  }, [after]);
 
   const [sortingMethod, setSortingMethod] = useState("best");
 
   const [numItemsDisplayed, setNumItemsDisplayed] = useState(20);
+
+  const [searchProgress, setSearchProgress] = useState(10);
 
   const sortedOffers =
     sortingMethod === "best"
@@ -98,11 +120,9 @@ export default function FlightResults() {
     openLayer(title, content, null);
   };
 
-  console.log("Filtered Offers (Best):", offersByBest);
-  console.log("Filtered Offers (Price):", offersByPrice);
-  console.log("Filtered Offers (Duration):", offersByDuration);
-
   const totalResults = sortedOffers.length;
+
+  console.log("Offers state in page.js", offers);
 
   return (
     <main>
@@ -162,6 +182,7 @@ export default function FlightResults() {
               </Button>
             </Block>
           </Block>
+          <ProgressBar value={searchProgress} />
           {isLoading ? (
             <Block>
               <FlightResultSkeleton />
@@ -179,7 +200,10 @@ export default function FlightResults() {
                       ref={index === arr.length - 1 ? lastItemRef : null}
                       key={offer.id}
                     >
-                      <FlightResult offer={offer} />
+                      <FlightResult
+                        offer={offer}
+                        isSimilarOffer={isSimilarOffer}
+                      />
                     </div>
                   ))}
               </Col>

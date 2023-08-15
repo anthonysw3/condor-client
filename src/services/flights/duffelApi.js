@@ -1,4 +1,9 @@
-// Get flight offers from Duffel API
+import axios from "axios";
+
+export const createCancelToken = () => {
+  return axios.CancelToken.source();
+};
+
 export const fetchFlightOffers = async ({
   origin,
   destination,
@@ -26,13 +31,12 @@ export const fetchFlightOffers = async ({
 
   console.log(passengerArray);
 
+  const source = createCancelToken(); // Localized cancel token for this request
+
   try {
-    const response = await fetch("http://192.168.0.227:5000/api/search", {
-      method: "POST",
-      headers: {
-        "Content-Type": "application/json",
-      },
-      body: JSON.stringify({
+    const response = await axios.post(
+      "http://192.168.0.227:5000/api/search",
+      {
         outbound: {
           origin: origin.iata_code,
           destination: destination.iata_code,
@@ -48,40 +52,55 @@ export const fetchFlightOffers = async ({
         cabin_class: travelClass,
         passengers: passengerArray,
         after: after,
-      }),
-    });
-
-    const responseData = await response.json();
-    console.log(responseData);
-    return responseData;
-  } catch (error) {
-    console.error("Error:", error);
-    throw error;
-  }
-};
-
-// Get single flight offer from Duffel API
-export const fetchSingleFlightOffer = async (offerId) => {
-  try {
-    const response = await fetch(
-      `http://192.168.0.227:5000/api/book/itinerary/${offerId}`,
+      },
       {
-        method: "GET",
         headers: {
           "Content-Type": "application/json",
         },
+        cancelToken: source.token,
       }
     );
 
-    const responseData = await response.json();
+    return response.data;
+  } catch (error) {
+    if (axios.isCancel(error)) {
+      console.log("Request canceled", error.message);
+    } else {
+      console.error("Error fetching flight offers:", error);
+    }
+  }
+};
+
+export const fetchSingleFlightOffer = async (offerId) => {
+  const source = createCancelToken(); // Localized cancel token for this request
+
+  try {
+    const response = await axios.get(
+      `http://192.168.0.227:5000/api/book/itinerary/${offerId}`,
+      {
+        headers: {
+          "Content-Type": "application/json",
+        },
+        cancelToken: source.token,
+      }
+    );
 
     if (!response.ok) {
       throw new Error(`HTTP error! status: ${response.status}`);
     }
 
-    return responseData;
+    return response.data;
   } catch (error) {
-    console.error("Error:", error);
-    throw error;
+    if (axios.isCancel(error)) {
+      console.log("Request was cancelled", error.message);
+    } else {
+      console.error("Error:", error);
+      throw error;
+    }
   }
 };
+
+// You will need a different approach for the global cancelation,
+// since the source isn't global anymore. Depending on your use case,
+// you might maintain a list of active sources and cancel them all,
+// or reconsider the need for a global cancelation.

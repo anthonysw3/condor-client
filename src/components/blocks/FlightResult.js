@@ -30,12 +30,14 @@ import {
   formatPriceWithCommas,
 } from "../utils/helpers/currencyUtils";
 
-export default function FlightResult({ offer, cheapest, fastest }) {
-  // Base Web
-  const [css, $theme] = useStyletron();
+export default function FlightResult({
+  offer,
+  cheapest,
+  fastest,
+  isSimilarOffer,
+}) {
   // Provider Functions
   const { openLayer, closeLayer } = useLayer();
-  console.log(offer);
   const {
     origin,
     destination,
@@ -67,6 +69,8 @@ export default function FlightResult({ offer, cheapest, fastest }) {
 
     openLayer(title, content, footer);
   };
+
+  console.log("FlightResult ID", offer.id);
 
   return (
     <Card onClick={handleDetailsDrawer} cheapest={cheapest} fastest={fastest}>

@@ -67,6 +67,7 @@ export default function EditBlock({
     const callbacks = {
       onClose: async () => {
         closeLayer();
+        fetchFlightOffersPage();
       },
     };
     const content = <Passengers onChange={callbacks.onChange} />;
