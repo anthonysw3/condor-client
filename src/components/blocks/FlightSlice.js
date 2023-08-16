@@ -84,8 +84,8 @@ export default function FlightSlice({ slice }) {
               as="img"
               src={firstStop.marketing_carrier.logo_symbol_url}
               alt="Image"
-              height="26px"
-              width="26px"
+              height="32px"
+              width="32px"
               overrides={{
                 Block: {
                   style: ({ $theme }) => ({

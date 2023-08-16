@@ -1,13 +1,12 @@
 import React, { useState, useEffect, useRef } from "react";
 import { Block } from "baseui/block";
-import { Badge, HIERARCHY, COLOR } from "baseui/badge";
-import {
-  IconCurrentLocation,
-  IconPlaneTilt,
-  IconBuildingSkyscraper,
-} from "@tabler/icons-react";
+import { Button, SIZE, SHAPE, KIND } from "baseui/button";
+import { IconCurrentLocation } from "@tabler/icons-react";
 import { InputText } from "../primitives/input";
 import { List } from "../primitives/list";
+
+// Sanity
+import { urlFor } from "../../services/global/imageUrlBuilder";
 
 const Status = ({ onChange, isOpen, mode }) => {
   const [airlineSearch, setAirlineSearch] = useState("");
@@ -30,9 +29,9 @@ const Status = ({ onChange, isOpen, mode }) => {
       if (airlineSearch.length >= 2) {
         fetch(`http://192.168.0.227:5000/api/airlines?q=${airlineSearch}`)
           .then((response) => response.json())
-          .then((data) => filteredAirlines(data));
+          .then((data) => setFilteredAirlines(data)); // Changed this line
       } else {
-        filteredAirlines([]);
+        setFilteredAirlines([]); // And this line
       }
     }, 300);
 
@@ -55,37 +54,54 @@ const Status = ({ onChange, isOpen, mode }) => {
         autoFocus
       />
       {airlineSearch && filteredAirlines.length > 0 ? (
-        <Block>
-          {filteredAirlines.map((airline) => (
-            <List
-              key={airline.iata}
-              label={airline.name}
-              description={airline.loyalty}
-              onClick={() => handleAirlineClick(airline)}
-              icon={
-                location.type === "place" ? (
-                  <IconBuildingSkyscraper size={20} />
-                ) : (
-                  <IconPlaneTilt size={20} />
-                )
-              }
-              listEnd={
-                <Badge
-                  content="Add"
-                  hierarchy={HIERARCHY.secondary}
-                  color={COLOR.primary}
-                />
-              }
-            />
-          ))}
+        <Block
+          overrides={{
+            Block: {
+              style: ({ $theme }) => ({
+                marginTop: $theme.sizing.scale600,
+              }),
+            },
+          }}
+        >
+          {filteredAirlines.map((airline) => {
+            return (
+              <List
+                key={airline.iata_code}
+                label={airline.name}
+                description={
+                  airline.frequent_flyer_program?.program_name
+                    ? airline.frequent_flyer_program.program_name
+                    : null
+                }
+                icon={
+                  <Block
+                    as="img"
+                    src={
+                      airline.logo_symbol?.asset
+                        ? urlFor(airline.logo_symbol).width(28).url()
+                        : null
+                    }
+                    height="32px"
+                    width="32px"
+                    alt={airline.name}
+                  />
+                }
+                listEnd={
+                  <Button
+                    onClick={() => alert("click")}
+                    size={SIZE.mini}
+                    shape={SHAPE.pill}
+                    kind={KIND.secondary}
+                  >
+                    Add
+                  </Button>
+                }
+              />
+            );
+          })}
         </Block>
       ) : (
-        <Block>
-          <List
-            icon={<IconCurrentLocation size={20} />}
-            label="British Airways"
-          />
-        </Block>
+        <Block></Block>
       )}
     </Block>
   );

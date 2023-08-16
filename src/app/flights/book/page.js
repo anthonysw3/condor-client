@@ -182,7 +182,7 @@ export default function FlightBooking() {
                   Your itinerary for this trip
                 </ParagraphXSmall>
                 {slices.map((slice, index) => (
-                  <FlightStep slice={slice} />
+                  <FlightStep key={index} slice={slice} />
                 ))}
               </Card>
             </Col>
