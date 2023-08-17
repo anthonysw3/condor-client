@@ -134,9 +134,9 @@ export default function FlightResults() {
             outbound={outbound}
             inbound={inbound}
             travelClass={travelClass}
-            adults={adults}
-            children={children}
-            infants={infants}
+            numAdults={adults}
+            numChildren={children}
+            numInfants={infants}
           />
           <SortingOptions
             setSortingMethod={setSortingMethod}

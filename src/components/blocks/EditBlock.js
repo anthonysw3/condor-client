@@ -29,9 +29,9 @@ export default function EditBlock({
   destination,
   outbound,
   inbound,
-  adults,
-  children,
-  infants,
+  numAdults,
+  numChildren,
+  numInfants,
   travelClass,
 }) {
   const [css, theme] = useStyletron();
@@ -200,8 +200,8 @@ export default function EditBlock({
             },
           }}
           onClick={handlePassengerDrawer}
-        >{`${adults + children + infants} passenger${
-          adults + children + infants > 1 ? "s" : ""
+        >{`${numAdults + numChildren + numInfants} passenger${
+          numAdults + numChildren + numInfants > 1 ? "s" : ""
         }`}</Button>
         <Button
           size={SIZE.compact}
