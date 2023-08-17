@@ -35,6 +35,7 @@
     "uuid": "^9.0.0"
   },
   "devDependencies": {
+    "remote-redux-devtools": "^0.5.16",
     "worker-loader": "^3.0.8"
   }
 }

@@ -181,11 +181,13 @@ export default function FlightSearch() {
               destination?.name ? ` (${destination?.iata_code})` : ""
             }`}
             placeholder="City or airport"
-            subText={`${
+            subText={
               destination?.city_name
-                ? destination?.city_name
+                ? destination.city_name
                 : destination?.name
-            }`}
+                ? destination.name
+                : "Add destination"
+            }
             onClick={handleDestinationLayer}
           />
         </Cell>
