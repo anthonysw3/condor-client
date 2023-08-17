@@ -13,7 +13,16 @@ import { Modal } from "baseui/modal";
 // Sanity
 import { urlFor } from "../../services/global/imageUrlBuilder";
 
+// Redux
+import { useDispatch, useSelector } from "react-redux";
+import {
+  addLoyaltyProgram,
+  removeLoyaltyProgram,
+} from "../../components/utils/store/slices/flightSlice";
+
 const Status = ({ onChange, isOpen, mode }) => {
+  const dispatch = useDispatch();
+
   const [airlineSearch, setAirlineSearch] = useState("");
   const [filteredAirlines, setFilteredAirlines] = useState([]);
   const [selectedPrograms, setSelectedPrograms] = useState([]);
@@ -25,9 +34,19 @@ const Status = ({ onChange, isOpen, mode }) => {
   const [isModalOpen, setIsModalOpen] = useState(false);
   const [selectedTiers, setSelectedTiers] = useState([]);
 
+  const loyaltyPrograms = useSelector((state) => state.flight.loyaltyPrograms);
+
   const openModalWithTiers = (tiers) => {
     setSelectedTiers(tiers);
     setIsModalOpen(true);
+  };
+
+  const handleAddProgram = (newProgram) => {
+    dispatch(addLoyaltyProgram(newProgram));
+  };
+
+  const handleRemoveProgram = (iata_code) => {
+    dispatch(removeLoyaltyProgram({ iata_code }));
   };
 
   const handleAirlineChange = (event) => {
@@ -125,7 +144,7 @@ const Status = ({ onChange, isOpen, mode }) => {
             },
           }}
         >
-          {selectedPrograms.map((program, index) => (
+          {loyaltyPrograms.map((program, index) => (
             <List
               key={program.iata_code}
               label={program.airlineName}
@@ -146,9 +165,7 @@ const Status = ({ onChange, isOpen, mode }) => {
               listEnd={
                 <Button
                   onClick={() => {
-                    const newSelectedPrograms = [...selectedPrograms];
-                    newSelectedPrograms.splice(index, 1);
-                    setSelectedPrograms(newSelectedPrograms);
+                    handleRemoveProgram(program.iata_code);
                   }}
                   size={SIZE.mini}
                   shape={SHAPE.pill}
@@ -164,10 +181,9 @@ const Status = ({ onChange, isOpen, mode }) => {
       {isModalOpen && (
         <Modal
           onClose={() => {
-            setIsModalOpen(false); // Close the modal
-            setSelectedAirline(null); // Reset the selected airline
+            setSelectedAirline(null); // Close the modal by setting selectedAirline to null
           }}
-          isOpen={isModalOpen}
+          isOpen={selectedAirline !== null}
           overrides={{
             Root: {
               style: {
@@ -209,41 +225,46 @@ const Status = ({ onChange, isOpen, mode }) => {
                 },
               }}
             >
-              {selectedAirline?.frequent_flyer_program.tiers.map(
-                (tier, index) => (
-                  <Button
-                    key={index}
-                    onClick={() => {
-                      const newProgram = {
-                        airlineName: selectedAirline.name,
-                        programName:
-                          selectedAirline.frequent_flyer_program.program_name,
-                        tierName: tier.tier_name,
-                        logoSymbol: selectedAirline.logo_symbol,
-                      };
-                      setSelectedPrograms([...selectedPrograms, newProgram]);
+              {selectedAirline &&
+                selectedAirline.frequent_flyer_program &&
+                selectedAirline.frequent_flyer_program.tiers &&
+                selectedAirline.frequent_flyer_program.tiers.map(
+                  (tier, index) => (
+                    <Button
+                      key={index}
+                      onClick={() => {
+                        const newProgram = {
+                          airlineName: selectedAirline.name,
+                          programName:
+                            selectedAirline.frequent_flyer_program.program_name,
+                          tierName: tier.tier_name,
+                          logoSymbol: selectedAirline.logo_symbol,
+                        };
 
-                      // Close the modal
-                      setIsModalOpen(false);
+                        // Dispatch the action to add the loyalty program to Redux
+                        dispatch(addLoyaltyProgram(newProgram));
 
-                      // Clear the input
-                      setAirlineSearch("");
-                    }}
-                    size={SIZE.default} // Standard size
-                    kind={KIND.secondary}
-                    overrides={{
-                      BaseButton: {
-                        style: ({ $theme }) => ({
-                          width: "100%", // Full width
-                          marginBottom: $theme.sizing.scale300, // Spacing between buttons
-                        }),
-                      },
-                    }}
-                  >
-                    {tier.tier_name}
-                  </Button>
-                )
-              )}
+                        // Close the modal
+                        setSelectedAirline(null);
+
+                        // Clear the input
+                        setAirlineSearch("");
+                      }}
+                      size={SIZE.default} // Standard size
+                      kind={KIND.secondary}
+                      overrides={{
+                        BaseButton: {
+                          style: ({ $theme }) => ({
+                            width: "100%", // Full width
+                            marginBottom: $theme.sizing.scale300, // Spacing between buttons
+                          }),
+                        },
+                      }}
+                    >
+                      {tier.tier_name}
+                    </Button>
+                  )
+                )}
             </Block>
           </Block>
         </Modal>

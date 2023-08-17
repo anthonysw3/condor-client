@@ -24,6 +24,7 @@ const flight = () => {
       children: 0,
       infants: 0,
     },
+    loyaltyPrograms: [], // New initial state key for loyalty programs
   };
 };
 
@@ -49,6 +50,17 @@ const flightSlice = createSlice({
     setPassengers: (state, action) => {
       state.passengers = action.payload;
     },
+    addLoyaltyProgram: (state, action) => {
+      state.loyaltyPrograms.push(action.payload);
+    },
+    removeLoyaltyProgram: (state, action) => {
+      const index = state.loyaltyPrograms.findIndex(
+        (program) => program.iata_code === action.payload.iata_code
+      );
+      if (index !== -1) {
+        state.loyaltyPrograms.splice(index, 1);
+      }
+    },
   },
 });
 
@@ -60,5 +72,7 @@ export const {
   setDates,
   setTravelClass,
   setPassengers,
+  addLoyaltyProgram, // Export new action
+  removeLoyaltyProgram, // Export new action
 } = flightSlice.actions;
 export default flightSlice.reducer;
