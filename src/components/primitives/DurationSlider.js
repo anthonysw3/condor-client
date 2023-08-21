@@ -1,13 +1,18 @@
-import React from "react";
+import React, { useState } from "react";
 
 // Base Web
 import { Slider } from "baseui/slider";
 import { LabelXSmall } from "baseui/typography";
 import { useStyletron } from "baseui";
 
-export default function DurationSlider() {
+export default function DurationSlider({
+  onFinalChange,
+  maxTime,
+  minTime,
+  persistedTime,
+}) {
   const [css, theme] = useStyletron();
-  const [value, setValue] = React.useState([26]);
+  const [value, setValue] = useState([persistedTime || 72]);
 
   const formatHour = (val) => {
     const hours = Math.floor(val);
@@ -23,11 +28,18 @@ export default function DurationSlider() {
   return (
     <Slider
       value={value}
-      onChange={({ value }) => value && setValue(value)}
-      onFinalChange={({ value }) => console.log(value)}
-      min={10.5}
-      max={26}
-      step={0.1}
+      onChange={({ value }) => {
+        console.log("Slider onChange Value:", value);
+        setValue(value);
+      }}
+      onFinalChange={({ value }) => {
+        if (value && onFinalChange) {
+          onFinalChange(value[0]);
+        }
+      }}
+      min={minTime || 0}
+      max={maxTime || 72}
+      step={0.5}
       overrides={{
         InnerThumb: () => null,
         ThumbValue: ({ $value, $thumbIndex }) => (
@@ -54,8 +66,8 @@ export default function DurationSlider() {
               paddingBottom: theme.sizing.scale400,
             })}
           >
-            <LabelXSmall>10h 30m</LabelXSmall>
-            <LabelXSmall>26h</LabelXSmall>
+            <LabelXSmall>{formatHour(minTime)}</LabelXSmall>
+            <LabelXSmall>{formatHour(maxTime)}</LabelXSmall>
           </div>
         ),
       }}

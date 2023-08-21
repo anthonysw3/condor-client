@@ -5,6 +5,7 @@ import { Block } from "baseui/block";
 import { Skeleton } from "baseui/skeleton";
 
 // Primitives
+import { List } from "../primitives/list";
 import { Panel } from "../containers/Panel";
 
 export function FlightResultSkeleton() {
@@ -177,5 +178,27 @@ export function FlightSummarySkeleton() {
         animation
       />
     </Panel>
+  );
+}
+
+export function ListSkeleton() {
+  return (
+    <List
+      label={
+        <Block display="flex" justifyContent="flex-start" alignItems="center">
+          <Block
+            overrides={{
+              Block: {
+                style: ({ $theme }) => ({ marginRight: "10px" }),
+              },
+            }}
+          >
+            <Skeleton height="22px" width="22px" animation />
+          </Block>
+          <Skeleton height="22px" width="180px" animation />
+        </Block>
+      }
+      listEnd={<Skeleton height="22px" width="80px" animation />}
+    />
   );
 }

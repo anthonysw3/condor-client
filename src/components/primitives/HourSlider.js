@@ -1,13 +1,13 @@
-import React from "react";
+import React, { useState } from "react";
 
 // Base Web
 import { Slider } from "baseui/slider";
 import { LabelXSmall } from "baseui/typography";
 import { useStyletron } from "baseui";
 
-export default function HourSlider() {
+export default function HourSlider({ label, currentRange, onValueChange }) {
   const [css, theme] = useStyletron();
-  const [value, setValue] = React.useState([0, 24]);
+  const [value, setValue] = useState(currentRange || [0, 24]);
 
   const formatHour = (val) => {
     let hour = Math.floor(val);
@@ -27,7 +27,9 @@ export default function HourSlider() {
     <Slider
       value={value}
       onChange={({ value }) => value && setValue(value)}
-      onFinalChange={({ value }) => console.log(value)}
+      onFinalChange={({ value }) => {
+        onValueChange(label, value);
+      }}
       min={0}
       max={24}
       step={1}

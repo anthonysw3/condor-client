@@ -1,4 +1,4 @@
-import React, { useState, useContext } from "react";
+import React, { useState, useContext, useEffect } from "react";
 
 // Grid
 import { Row, Col } from "react-grid-system";
@@ -12,30 +12,78 @@ import { LabelXSmall, LabelSmall, LabelMedium } from "baseui/typography";
 import { List } from "../primitives/list";
 import HourSlider from "../primitives/HourSlider";
 import DurationSlider from "../primitives/DurationSlider";
+import { ListSkeleton } from "../containers/Skeletons";
 
-// Flight Provider
-import { useFlights } from "../../contexts/FlightsProvider";
+// Redux
+import { useDispatch, useSelector } from "react-redux";
+import {
+  toggleOnlyWithStatus,
+  toggleOnlyBuildStatus,
+  toggleStopsDirect,
+  toggleStopsOne,
+  toggleStopsTwoPlus,
+  setOriginDepartTimeRange,
+  setDestinationDepartTimeRange,
+  setDurationMax,
+  setDurationMin,
+  setSelectedDurationMax,
+  setLayoverMax,
+  setOriginAirports,
+  toggleOriginAirport,
+  setDestinationAirports,
+  toggleDestinationAirport,
+  setAlliances,
+  toggleAlliance,
+  setAirlines,
+  toggleAirline,
+} from "../utils/store/slices/flightSlice";
 
-export default function Filters() {
-  const [frequentFlyer, setFrequentFlyer] = useState(false);
-  const [statusAirlines, setStatusAirlines] = useState(false);
-  const [departReturn, setDepartReturn] = useState(false);
-  const [oneWorld, setOneWorld] = useState(true);
-  const [starAlliance, setStarAlliance] = useState(true);
-  const [skyTeam, setSkyTeam] = useState(true);
+export default function Filters({ airlinesAndPrices = [] }) {
+  const [isLoading, setIsLoading] = useState(true);
+  const dispatch = useDispatch();
+  const filters = useSelector((state) => state.flight.filters);
+  const dates = useSelector((state) => state.flight.dates);
 
-  const { filters, updateFilter } = useFlights();
-  const stops = filters.stops || defaultStops; // defaultStops should be defined as [0, 1, 2]
-
-  const updateStopsFilter = (stopValue, isChecked) => {
-    if (isChecked) {
-      updateFilter("stops", [...filters.stops, stopValue]);
-    } else {
-      updateFilter(
-        "stops",
-        filters.stops.filter((stop) => stop !== stopValue)
-      );
+  useEffect(() => {
+    if (airlinesAndPrices.length > 0) {
+      setIsLoading(false); // Set loading state to false when airlinesAndPrices is populated
     }
+  }, [airlinesAndPrices]);
+
+  console.log("Airlines and Prices:", airlinesAndPrices);
+
+  const convertHourToTimeString = (hour) => {
+    return `${String(hour).padStart(2, "0")}:00:00`;
+  };
+
+  // Updated handler for stops filter
+  const updateStopsFilter = (stopValue) => {
+    switch (stopValue) {
+      case 0:
+        dispatch(toggleStopsDirect());
+        break;
+      case 1:
+        dispatch(toggleStopsOne());
+        break;
+      case 2:
+        dispatch(toggleStopsTwoPlus());
+        break;
+      default:
+        break;
+    }
+  };
+
+  const handleSliderChange = (label, newValue) => {
+    if (label === "Origin Departure Time") {
+      dispatch(setOriginDepartTimeRange(newValue));
+    } else if (label === "Destination Departure Time") {
+      dispatch(setDestinationDepartTimeRange(newValue));
+    }
+  };
+
+  const handleTotalDurationChange = (value) => {
+    console.log("Received Value in Filters:", value);
+    dispatch(setSelectedDurationMax(value));
   };
 
   return (
@@ -66,9 +114,9 @@ export default function Filters() {
             label="Frequent flyer airlines"
             listEnd={
               <Checkbox
-                checked={frequentFlyer}
+                checked={filters.onlyWithStatus}
+                onChange={() => dispatch(toggleOnlyWithStatus())}
                 checkmarkType={STYLE_TYPE.toggle}
-                onChange={(e) => setFrequentFlyer(e.target.checked)}
               />
             }
           />
@@ -76,9 +124,9 @@ export default function Filters() {
             label="Status building airlines"
             listEnd={
               <Checkbox
-                checked={statusAirlines}
+                checked={filters.onlyBuildStatus}
+                onChange={() => dispatch(toggleOnlyBuildStatus())}
                 checkmarkType={STYLE_TYPE.toggle}
-                onChange={(e) => setStatusAirlines(e.target.checked)}
               />
             }
           />
@@ -88,16 +136,7 @@ export default function Filters() {
             label={
               <Checkbox
                 checked={filters.stops.includes(0)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    updateFilter("stops", [...filters.stops, 0]);
-                  } else {
-                    updateFilter(
-                      "stops",
-                      filters.stops.filter((stop) => stop !== 0)
-                    );
-                  }
-                }}
+                onChange={() => updateStopsFilter(0)}
                 labelPlacement={LABEL_PLACEMENT.right}
               >
                 Direct
@@ -109,16 +148,7 @@ export default function Filters() {
             label={
               <Checkbox
                 checked={filters.stops.includes(1)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    updateFilter("stops", [...filters.stops, 1]);
-                  } else {
-                    updateFilter(
-                      "stops",
-                      filters.stops.filter((stop) => stop !== 1)
-                    );
-                  }
-                }}
+                onChange={() => updateStopsFilter(1)}
                 labelPlacement={LABEL_PLACEMENT.right}
               >
                 1 stop
@@ -130,16 +160,7 @@ export default function Filters() {
             label={
               <Checkbox
                 checked={filters.stops.includes(2)}
-                onChange={(e) => {
-                  if (e.target.checked) {
-                    updateFilter("stops", [...filters.stops, 2]);
-                  } else {
-                    updateFilter(
-                      "stops",
-                      filters.stops.filter((stop) => stop !== 2)
-                    );
-                  }
-                }}
+                onChange={() => updateStopsFilter(2)}
                 labelPlacement={LABEL_PLACEMENT.right}
               >
                 2+ stops
@@ -190,30 +211,40 @@ export default function Filters() {
             >
               Outbound
             </LabelSmall>
-            <HourSlider />
+            <HourSlider
+              label="Origin Departure Time"
+              currentRange={filters.originDepartTimeRange}
+              onValueChange={handleSliderChange}
+            />
           </Block>
-          <Block
-            overrides={{
-              Block: {
-                style: ({ $theme }) => ({
-                  marginBottom: $theme.sizing.scale400,
-                }),
-              },
-            }}
-          >
-            <LabelSmall
+          {dates.inbound && (
+            <Block
               overrides={{
                 Block: {
                   style: ({ $theme }) => ({
-                    marginBottom: $theme.sizing.scale300,
+                    marginBottom: $theme.sizing.scale400,
                   }),
                 },
               }}
             >
-              Return
-            </LabelSmall>
-            <HourSlider />
-          </Block>
+              <LabelSmall
+                overrides={{
+                  Block: {
+                    style: ({ $theme }) => ({
+                      marginBottom: $theme.sizing.scale300,
+                    }),
+                  },
+                }}
+              >
+                Return
+              </LabelSmall>
+              <HourSlider
+                label="Destination Departure Time"
+                currentRange={filters.destinationDepartTimeRange}
+                onValueChange={handleSliderChange}
+              />
+            </Block>
+          )}
         </Block>
         <Block
           overrides={{
@@ -265,7 +296,13 @@ export default function Filters() {
               >
                 Total duration
               </LabelSmall>
-              <DurationSlider />
+              <DurationSlider
+                label="Total duration"
+                onFinalChange={handleTotalDurationChange}
+                maxTime={filters.durationMax}
+                minTime={filters.durationMin}
+                persistedTime={filters.selectedDurationMax}
+              />
             </Block>
             <Block
               overrides={{
@@ -287,7 +324,10 @@ export default function Filters() {
               >
                 Maximum layover
               </LabelSmall>
-              <DurationSlider />
+              <DurationSlider
+                label="Maximum layover"
+                onFinalChange={handleTotalDurationChange}
+              />
             </Block>
           </Block>
         </Block>
@@ -315,11 +355,7 @@ export default function Filters() {
           <List
             label="Depart/return at same airports"
             listEnd={
-              <Checkbox
-                checked={departReturn}
-                checkmarkType={STYLE_TYPE.toggle}
-                onChange={(e) => setDepartReturn(e.target.checked)}
-              />
+              <Checkbox checked="true" checkmarkType={STYLE_TYPE.toggle} />
             }
           />
           <LabelSmall
@@ -336,7 +372,7 @@ export default function Filters() {
           <List
             label={
               <Checkbox
-                checked={direct}
+                checked="true"
                 onChange={(e) => setDirect(e.target.checked)}
                 labelPlacement={LABEL_PLACEMENT.right}
               >
@@ -348,7 +384,7 @@ export default function Filters() {
           <List
             label={
               <Checkbox
-                checked={oneStop}
+                checked="true"
                 onChange={(e) => setOneStop(e.target.checked)}
                 labelPlacement={LABEL_PLACEMENT.right}
               >
@@ -360,7 +396,7 @@ export default function Filters() {
           <List
             label={
               <Checkbox
-                checked={twoPlus}
+                checked="true"
                 onChange={(e) => setTwoPlus(e.target.checked)}
                 labelPlacement={LABEL_PLACEMENT.right}
               >
@@ -383,7 +419,7 @@ export default function Filters() {
           <List
             label={
               <Checkbox
-                checked={direct}
+                checked="true"
                 onChange={(e) => setDirect(e.target.checked)}
                 labelPlacement={LABEL_PLACEMENT.right}
               >
@@ -395,7 +431,7 @@ export default function Filters() {
           <List
             label={
               <Checkbox
-                checked={oneStop}
+                checked="true"
                 onChange={(e) => setOneStop(e.target.checked)}
                 labelPlacement={LABEL_PLACEMENT.right}
               >
@@ -430,7 +466,7 @@ export default function Filters() {
             label="OneWorld"
             listEnd={
               <Checkbox
-                checked={oneWorld}
+                checked="true"
                 checkmarkType={STYLE_TYPE.toggle}
                 onChange={(e) => setDepartReturn(e.target.checked)}
               />
@@ -440,7 +476,7 @@ export default function Filters() {
             label="Star Alliance"
             listEnd={
               <Checkbox
-                checked={starAlliance}
+                checked="true"
                 checkmarkType={STYLE_TYPE.toggle}
                 onChange={(e) => setDepartReturn(e.target.checked)}
               />
@@ -450,16 +486,39 @@ export default function Filters() {
             label="SkyTeam"
             listEnd={
               <Checkbox
-                checked={skyTeam}
+                checked="true"
                 checkmarkType={STYLE_TYPE.toggle}
                 onChange={(e) => setDepartReturn(e.target.checked)}
               />
             }
           />
+          {isLoading ? (
+            <Block>
+              <ListSkeleton />
+              <ListSkeleton />
+              <ListSkeleton />
+            </Block>
+          ) : (
+            airlinesAndPrices.map((airline) => (
+              <List
+                key={airline.iataCode}
+                label={
+                  <Checkbox
+                    checked={filters.airlines.includes(airline.iataCode)}
+                    onChange={() => dispatch(toggleAirline(airline.iataCode))}
+                    labelPlacement={LABEL_PLACEMENT.right}
+                  >
+                    {airline.name}
+                  </Checkbox>
+                }
+                listEnd={<LabelXSmall>From £{airline.minPrice}</LabelXSmall>}
+              />
+            ))
+          )}
           <List
             label={
               <Checkbox
-                checked={oneStop}
+                checked="true"
                 onChange={(e) => setOneStop(e.target.checked)}
                 labelPlacement={LABEL_PLACEMENT.right}
               >
@@ -471,7 +530,7 @@ export default function Filters() {
           <List
             label={
               <Checkbox
-                checked={oneStop}
+                checked="true"
                 onChange={(e) => setOneStop(e.target.checked)}
                 labelPlacement={LABEL_PLACEMENT.right}
               >
@@ -483,7 +542,7 @@ export default function Filters() {
           <List
             label={
               <Checkbox
-                checked={oneStop}
+                checked="true"
                 onChange={(e) => setOneStop(e.target.checked)}
                 labelPlacement={LABEL_PLACEMENT.right}
               >
@@ -495,7 +554,7 @@ export default function Filters() {
           <List
             label={
               <Checkbox
-                checked={oneStop}
+                checked="true"
                 onChange={(e) => setOneStop(e.target.checked)}
                 labelPlacement={LABEL_PLACEMENT.right}
               >

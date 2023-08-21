@@ -21,6 +21,7 @@ import { IconCircleDot } from "@tabler/icons-react";
 // Helpers
 import { formatDuration } from "../utils/helpers/dateUtils";
 import { getCurrencySymbol } from "../utils/helpers/currencyUtils";
+import { DEV_MIDDLEWARE_MANIFEST } from "next/dist/shared/lib/constants";
 
 export default function FlightSlice({ slice }) {
   const [css, $theme] = useStyletron();

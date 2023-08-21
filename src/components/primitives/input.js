@@ -165,8 +165,15 @@ export const InputPersons = ({ label, passengers, onClick, ...props }) => {
   );
 };
 
-export const InputStatus = ({ label, status, onClick, ...props }) => {
-  const buttonLabel = status < 1 ? "Add program" : `Add more programs`;
+export const InputStatus = ({
+  label,
+  status,
+  onClick,
+  loyaltyProgramsCount,
+  ...props
+}) => {
+  const buttonLabel =
+    loyaltyProgramsCount < 1 ? "Add program" : `Add another program`;
   return (
     <Block
       overrides={{
@@ -219,6 +226,9 @@ export const InputStatus = ({ label, status, onClick, ...props }) => {
             size={SIZE.mini}
             shape={SHAPE.pill}
             onClick={onClick}
+            startEnhancer={
+              loyaltyProgramsCount > 0 ? loyaltyProgramsCount : null
+            }
             endEnhancer={() => <IconPlus size={12} />}
           >
             {buttonLabel}

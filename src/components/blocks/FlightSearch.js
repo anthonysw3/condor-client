@@ -55,6 +55,9 @@ export default function FlightSearch() {
   const dates = useSelector((state) => state.flight.dates);
   const travelClass = useSelector((state) => state.flight.travelClass);
   const totalPassengers = useSelector(getTotalPassengers);
+  const loyaltyPrograms = useSelector((state) => state.flight.loyaltyPrograms);
+
+  const loyaltyProgramsCount = loyaltyPrograms.length;
 
   const [selected, setSelected] = useState(
     classButtonValues.indexOf(travelClass) !== -1
@@ -217,7 +220,11 @@ export default function FlightSearch() {
           />
         </Cell>
         <Cell span={[4, 5, 7]}>
-          <InputStatus label="Frequent Flyer" onClick={handleStatusLayer} />
+          <InputStatus
+            label="Frequent Flyer"
+            onClick={handleStatusLayer}
+            loyaltyProgramsCount={loyaltyProgramsCount}
+          />
         </Cell>
         <Cell span={[4, 2, 3]}>
           <Button

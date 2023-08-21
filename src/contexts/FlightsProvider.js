@@ -43,6 +43,7 @@ export function FlightsProvider({ children }) {
 
   const [sortingMethod, setSortingMethod] = useState("best");
   const [hasReceivedFirstPage, setHasReceivedFirstPage] = useState(false);
+  const [searchComplete, setSearchComplete] = useState(false);
   const {
     origin,
     destination,
@@ -294,8 +295,6 @@ export function FlightsProvider({ children }) {
         const newOffers = results.data || [];
         const newAfter = results.meta.after || null;
 
-        console.log("Starting filtering for new offers...");
-
         // Filter out offers with "ZZ" iata_code and offers that already exist in the state
         const uniqueNewOffers = newOffers.filter((offer) => {
           return offer.owner.iata_code !== "ZZ";
@@ -331,7 +330,6 @@ export function FlightsProvider({ children }) {
         if (!newAfter && !hasReceivedFirstPage) {
           setHasReceivedFirstPage(true);
           setIsLoading(false);
-          console.log("Loading state set to false");
         }
 
         if (newAfter && isMounted.current) {
@@ -421,6 +419,7 @@ export function FlightsProvider({ children }) {
       clearFlightSearchData,
       updateFilter,
       filters,
+      after,
     ]
   );
 

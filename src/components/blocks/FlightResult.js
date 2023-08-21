@@ -3,7 +3,12 @@ import { useRouter } from "next/navigation";
 
 // Base Web
 import { Block } from "baseui/block";
-import { ParagraphXSmall, HeadingXSmall, LabelXSmall } from "baseui/typography";
+import {
+  ParagraphXSmall,
+  HeadingXSmall,
+  LabelSmall,
+  LabelXSmall,
+} from "baseui/typography";
 import { Button, SIZE, SHAPE } from "baseui/button";
 import { useStyletron } from "baseui";
 
@@ -13,6 +18,7 @@ import { Card } from "../primitives/card";
 // Components
 import FlightDetails from "./FlightDetails";
 import FlightSlice from "./FlightSlice";
+import Slice from "./Slice";
 
 // Icons
 import { IconChevronRight } from "@tabler/icons-react";
@@ -73,141 +79,75 @@ export default function FlightResult({
   console.log("FlightResult ID", offer.id);
 
   return (
-    <Card onClick={handleDetailsDrawer} cheapest={cheapest} fastest={fastest}>
-      {cheapest && <div></div>}
-      {fastest && <div></div>}
-      <LabelXSmall
-        overrides={{
-          Block: {
-            style: ({ $theme }) => ({
-              color: $theme.colors.primary500,
-              marginBottom: $theme.sizing.scale300,
-            }),
-          },
-        }}
-      >
-        {offer.owner.name}
-      </LabelXSmall>
-      {offer.slices.map((slice, index) => (
-        <FlightSlice key={index} slice={slice} />
-      ))}
-      {/*<Container style={{ padding: 0 }}>
+    <Block onClick={handleDetailsDrawer}>
+      <Card onClick={handleDetailsDrawer} cheapest={cheapest} fastest={fastest}>
         <Block
-          display="flex"
-          alignItems="center"
-          justifyContent="center"
           overrides={{
             Block: {
-              style: {
-                display: "flex",
-                alignItems: "center",
-                justifyContent: "center",
-              },
-            },
-          }}
-        >
-          <Block
-            width="26px"
-            height="26px"
-            overrides={{
-              Block: {
-                style: ({ $theme }) => ({
-                  borderRadius: "50%",
-                  backgroundColor: $theme.colors.primary50,
-                  marginLeft: "-30px",
-                }),
-              },
-            }}
-          />
-          <Block
-            flex="1"
-            overrides={{
-              Block: {
-                style: ({ $theme }) => ({
-                  height: "1px",
-                  borderTop: `4px dashed ${$theme.colors.primary50}`,
-                }),
-              },
-            }}
-          />
-          <Block
-            width="26px"
-            height="26px"
-            overrides={{
-              Block: {
-                style: ({ $theme }) => ({
-                  borderRadius: "50%",
-                  backgroundColor: $theme.colors.primary50,
-                  marginRight: "-30px",
-                }),
-              },
-            }}
-          />
-        </Block>
-          </Container>*/}
-
-      <Block
-        overrides={{
-          Block: {
-            style: ({ $theme }) => ({
-              display: "flex",
-              justifyContent: "space-between",
-              alignItems: "center",
-              marginTop: $theme.sizing.scale400,
-            }),
-          },
-        }}
-      >
-        <Block>
-          <HeadingXSmall
-            overrides={{
-              Block: {
-                style: ({ $theme }) => ({
-                  marginTop: $theme.sizing.scale100,
-                  marginBottom: 0,
-                  fontWeight: "bold",
-                }),
-              },
-            }}
-          >
-            {currencySymbol}
-            {formatPriceWithCommas(roundedAmount)}
-          </HeadingXSmall>
-          <ParagraphXSmall
-            overrides={{
-              Block: {
-                style: ({ $theme }) => ({
-                  marginTop: 0,
-                  marginBottom: 0,
-                }),
-              },
-            }}
-          >
-            {passengerCount === 1 && "Total fare"}
-            {passengerCount > 1 &&
-              `${currencySymbol}${formatPriceWithCommas(
-                offer.total_amount
-              )} total`}
-          </ParagraphXSmall>
-        </Block>
-        <Button
-          size={SIZE.compact}
-          shape={SHAPE.pill}
-          endEnhancer={() => <IconChevronRight size={18} />}
-          overrides={{
-            BaseButton: {
               style: ({ $theme }) => ({
-                marginTop: 0,
-                marginBottom: 0,
+                display: "flex",
+                justifyContent: "space-between",
+                alignItems: "center",
+                marginBottom: $theme.sizing.scale600,
+                borderBottom: `2px dotted ${$theme.colors.primary100}`,
+                paddingBottom: $theme.sizing.scale500,
               }),
             },
           }}
-          onClick={handleDetailsDrawer}
         >
-          Select
-        </Button>
-      </Block>
-    </Card>
+          <Block
+            overrides={{
+              Block: {
+                style: ({ $theme }) => ({
+                  display: "flex",
+                  justifyContent: "flex-start",
+                  alignItems: "center",
+                  margin: 0,
+                }),
+              },
+            }}
+          >
+            <Block
+              as="img"
+              src={offer.owner.logo_symbol_url}
+              alt="Image"
+              height="26px"
+              width="26px"
+            />
+            <LabelSmall
+              overrides={{
+                Block: {
+                  style: ({ $theme }) => ({
+                    marginLeft: $theme.sizing.scale300,
+                  }),
+                },
+              }}
+            >
+              {offer.owner.name}
+            </LabelSmall>
+          </Block>
+          <Block>
+            <HeadingXSmall
+              overrides={{
+                Block: {
+                  style: ({ $theme }) => ({
+                    marginTop: 0,
+                    marginBottom: 0,
+                    fontWeight: "bold",
+                  }),
+                },
+              }}
+            >
+              {currencySymbol}
+              {formatPriceWithCommas(roundedAmount)}
+            </HeadingXSmall>
+          </Block>
+        </Block>
+        {offer.slices.map((slice, index) => (
+          <Slice key={index} slice={slice} />
+        ))}
+      </Card>
+    </Block>
   );
 }
 
